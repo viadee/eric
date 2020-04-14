@@ -96,3 +96,11 @@ After react was installed, cd into the client folder of the project. Run:
     npm start
 
 The client application should open http://localhost:3000/ in the browser. It will automatically connect to the server.
+
+## Authors
+
+* **Christian Werner** - *Initial work* - [Christian Werner](https://github.com/Bl7tzcrank)
+
+## License
+
+BSD 3-Clause License
