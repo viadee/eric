@@ -1,0 +1,23 @@
+name: eric
+channels:
+  - alubbock
+  - conda-forge
+  - defaults
+dependencies:
+  - python=3.7.2=h8c8aaf0_10
+  - pip=20.0.2=py37_1
+  - shap=0.34.0=py37he350917_0
+  - pygraphviz=1.5=py37_0
+  - pip:
+    - numpy==1.18.2
+    - pandas==1.0.3
+    - sklearn==0.0
+    - autobahn==20.4.1
+    - twisted==20.3.0
+    - alibi==0.4.0
+    - imgkit==1.0.2
+    - pyCeterisParibus==0.5.1
+    - ipython==7.13.0
+    - clipspy==0.3.2
+    - alibi==0.4.0
+    - graphviz==0.13.2

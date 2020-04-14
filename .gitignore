@@ -127,3 +127,18 @@ dmypy.json
 
 # Pyre type checker
 .pyre/
+
+# custom
+temp.*
+.vscode
+clips-6.3.0/clips_core_source_630
+clips-6.3.0/clipspy
+__pycache__
+archive.ics.uci.edu
+temp
+node_modules
+clipspy-0.3.2
+package-lock.json
+_plot_files
+THIRD-PARTY-LICENSE.py
+clips-6.3.0
