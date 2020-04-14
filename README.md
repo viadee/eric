@@ -2,7 +2,7 @@
 
 ![interface](/ERIC_interface.png)
 
-ERIC is an acronym for "Explainable AI through Rule-based Interactive Conversation". ERIC applies different XAI methods to a machine learning model and uses the results to answer the questions that are asked by AI users in natural language. The method se- lection and the dialogue are supported by a rule-based expert system which consists of hand-crafted if-then-else rules. A potential user can communicate with ERIC through a chat-like conversational interface and receive appropriate explanations about the machine learning model’s reasoning behaviour. Since it is based on natural language understand- ing, the system is specifically targeted to domain experts who have an understanding of the data, but not about machine learning. ERIC is focused on classification tasks and tabular data sets.
+ERIC is an acronym for "Explainable AI through Rule-based Interactive Conversation". ERIC applies different XAI methods to a machine learning model and uses the results to answer the questions that are asked by AI users in natural language. The method selection and the dialogue are supported by a rule-based expert system which consists of hand-crafted if-then-else rules. A potential user can communicate with ERIC through a chat-like conversational interface and receive appropriate explanations about the machine learning model’s reasoning behaviour. Since it is based on natural language understanding, the system is specifically targeted to domain experts who have an understanding of the data, but not about machine learning. ERIC is focused on classification tasks and tabular data sets.
 
 Read more about it in this [article](http://ceur-ws.org/Vol-2578/ETMLP3.pdf).
 
