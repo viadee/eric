@@ -505,10 +505,14 @@ class mlObject:
 
         if explanation['cf'] != None:
 
+            print("FINISHED!!!!!!")
+            print(explanation['cf']['X'])
+            print(explanation['cf']['X'][0][len(categories):])
+
             one_hot_training = self.X_train[categories].to_numpy()
             one = OneHotEncoder(handle_unknown='ignore')
             one.fit(one_hot_training)
-            inverse_one_hot = one.inverse_transform([explanation['cf']['X'][0][len(categories):]])
+            inverse_one_hot = one.inverse_transform([explanation['cf']['X'][0][len(continuous):]])
 
             scaler_training = self.X_train[continuous].to_numpy()
             scaler = MinMaxScaler()
