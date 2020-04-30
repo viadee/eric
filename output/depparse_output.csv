@@ -1,0 +1,110 @@
+OUTPUT:
+
+
+Predict something . 
+Root: Predict
+ID;Word;uPOS;treePOS;Head ID;Head;DepRel
+1;Predict;VERB;VB;0;root;root
+2;something;PRON;NN;1;Predict;obj
+3;.;PUNCT;.;1;Predict;punct
+
+
+Predict something for me . 
+Root: Predict
+ID;Word;uPOS;treePOS;Head ID;Head;DepRel
+1;Predict;VERB;VB;0;root;root
+2;something;PRON;NN;1;Predict;obj
+3;for;ADP;IN;4;me;case
+4;me;PRON;PRP;2;something;nmod
+5;.;PUNCT;.;1;Predict;punct
+
+
+Can you predict something for me ? 
+Root: predict
+ID;Word;uPOS;treePOS;Head ID;Head;DepRel
+1;Can;AUX;MD;3;predict;aux
+2;you;PRON;PRP;3;predict;nsubj
+3;predict;VERB;VB;0;root;root
+4;something;PRON;NN;3;predict;obj
+5;for;ADP;IN;6;me;case
+6;me;PRON;PRP;4;something;nmod
+7;?;PUNCT;.;3;predict;punct
+
+
+What if you try Z for X ? 
+Root: What
+ID;Word;uPOS;treePOS;Head ID;Head;DepRel
+1;What;PRON;WP;0;root;root
+2;if;SCONJ;IN;4;try;mark
+3;you;PRON;PRP;4;try;nsubj
+4;try;VERB;VBP;1;What;advcl
+5;Z;NOUN;NN;4;try;obj
+6;for;ADP;IN;7;X;case
+7;X;PROPN;NNP;5;Z;nmod
+8;?;PUNCT;.;1;What;punct
+
+
+What if you change X to Z ? 
+Root: What
+ID;Word;uPOS;treePOS;Head ID;Head;DepRel
+1;What;PRON;WP;0;root;root
+2;if;SCONJ;IN;4;change;mark
+3;you;PRON;PRP;4;change;nsubj
+4;change;VERB;VBP;1;What;advcl
+5;X;NOUN;NN;4;change;obj
+6;to;ADP;IN;7;Z;case
+7;Z;PROPN;NNP;4;change;obl
+8;?;PUNCT;.;1;What;punct
+
+
+What if X was different ? 
+Root: What
+ID;Word;uPOS;treePOS;Head ID;Head;DepRel
+1;What;PRON;WP;0;root;root
+2;if;SCONJ;IN;5;different;mark
+3;X;PROPN;NNP;5;different;nsubj
+4;was;AUX;VBD;5;different;cop
+5;different;ADJ;JJ;1;What;advcl
+6;?;PUNCT;.;1;What;punct
+
+
+The professors love books . 
+Root: love
+ID;Word;uPOS;treePOS;Head ID;Head;DepRel
+1;The;DET;DT;2;professors;det
+2;professors;NOUN;NNS;3;love;nsubj
+3;love;VERB;VBP;0;root;root
+4;books;NOUN;NNS;3;love;obj
+5;.;PUNCT;.;3;love;punct
+
+
+Books are loved by the professors . 
+Root: loved
+ID;Word;uPOS;treePOS;Head ID;Head;DepRel
+1;Books;NOUN;NNS;3;loved;nsubj:pass
+2;are;AUX;VBP;3;loved;aux:pass
+3;loved;VERB;VBN;0;root;root
+4;by;ADP;IN;6;professors;case
+5;the;DET;DT;6;professors;det
+6;professors;NOUN;NNS;3;loved;obl
+7;.;PUNCT;.;3;loved;punct
+
+
+He reads Books . 
+Root: reads
+ID;Word;uPOS;treePOS;Head ID;Head;DepRel
+1;He;PRON;PRP;2;reads;nsubj
+2;reads;VERB;VBZ;0;root;root
+3;Books;NOUN;NNS;2;reads;obj
+4;.;PUNCT;.;2;reads;punct
+
+
+Books are read by him . 
+Root: read
+ID;Word;uPOS;treePOS;Head ID;Head;DepRel
+1;Books;NOUN;NNS;3;read;nsubj:pass
+2;are;AUX;VBP;3;read;aux:pass
+3;read;VERB;VBN;0;root;root
+4;by;ADP;IN;5;him;case
+5;him;PRON;PRP;3;read;obl
+6;.;PUNCT;.;3;read;punct
