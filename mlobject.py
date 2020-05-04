@@ -121,9 +121,9 @@ class mlObject:
         precision = [ round(elem, 2) for elem in precision.tolist() ] 
         for i in range(0, len(names)):
             rule = rule + names[i]
-            #importance = round(precision[i]/sum(precision)*100,2)
+            importance = round(precision[i]/sum(precision)*100,2)
 
-            #rule = rule + " (" + str(importance) + "%)"
+            rule = rule + " (" + str(importance) + "%)"
             if (i < len(names)-1):
                 rule = rule + " AND "
 
@@ -146,7 +146,7 @@ class mlObject:
                                     label='none',
                                     filled=True,
                                     rotate=True,
-                                    class_names=["died","survived"])
+                                    class_names=[self.dictionary["class"]["values"][0],self.dictionary["class"]["values"][1]])
             
             def categorize_dot(dot):
                 new_dot = dot
@@ -454,7 +454,7 @@ class mlObject:
         single_shap = explainer.shap_values(shap_instance.iloc[0,:].astype("int64"), nsamples=100)
         print(single_shap)
 
-        fig = shap.force_plot(explainer.expected_value[0], single_shap[0], original_instance, out_names=["Chance of died","survived"], link="logit", matplotlib = True, show=False, text_rotation=90)
+        fig = shap.force_plot(explainer.expected_value[0], single_shap[0], original_instance, out_names=["Chance of " + self.dictionary["class"]["values"][0],self.dictionary["class"]["values"][1]], link="logit", matplotlib = True, show=False, text_rotation=90)
         fig.savefig('temp/shap.png', bbox_inches = "tight")
 
         first_target = self.dictionary["class"]["values"][0]
