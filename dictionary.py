@@ -2,6 +2,7 @@ dictionary = [
     {   
         "id" : "predict",
         "keywords" : "predict predictions classify classifications",
+        "key_sentences": ["Make me a prediction", "Can you please make me a prediction?", "Can you predict something for me?", "predict", "prediction", "Make prediction", "Make me a prediction"],
         "display" : "Make me a prediction.",
         "write" : "Can you please make me a prediction?",
         "execute" : "predict",
@@ -10,6 +11,7 @@ dictionary = [
     {
         "id": "whatif",
         "keywords" : "what if change",
+        "key_sentences": ["What if <key> equals <value>?", "What if you change <key> to <value>?"],
         "display" : "What if X equals Z?",
         "write" : "What if X equals Z?",
         "execute" : "whatif",
@@ -18,6 +20,7 @@ dictionary = [
     {
         "id": "whatif-gl",
         "keywords" : "what if greater less change",
+        "key_sentences": ["What if <key> was greater or less?", "What if <key> was greater / less?"],
         "display" : "What if X was greater/less?",
         "write" : "What if X was greater/less?",
         "execute" : "whatif-gl",
@@ -26,6 +29,7 @@ dictionary = [
     {
         "id": "why",
         "keywords" : "why",
+        "key_sentences": ["Why did you predict <outcome>?", "Why did you predict that?"],
         "display" : "Why did you predict X?",
         "write" : "Why did you predict X?",
         "execute" : "why",
@@ -34,6 +38,7 @@ dictionary = [
     {
         "id": "why-not",
         "keywords" : "why not",
+        "key_sentences": ["Why didn't you predict <outcome>?", "Why did you not predict <outcome>?"],
         "display" : "Why didn't you predict Z?",
         "write" : "Why didn't you predict Z?",
         "execute" : "why-not",
@@ -42,6 +47,7 @@ dictionary = [
     {
         "id": "how-to",
         "keywords" : "how",
+        "key_sentences": ["How do I get <outcome>?"],
         "display" : "How do I get Y?",
         "write" : "How do I get Y?",
         "execute" : "how-to",
@@ -50,6 +56,7 @@ dictionary = [
     {
         "id": "when",
         "keywords" : "when",
+        "key_sentences": ["When do you predict <outcome>?", "When do I get Y?"],
         "display" : "When do you predict Y?",
         "write" : "When do you predict Y?",
         "execute" : "when",
@@ -58,6 +65,7 @@ dictionary = [
     {   
         "id" : "certainty",
         "keywords" : "how certain uncertain are you sure",
+        "key_sentences": ["How certain are you?", "Are you sure?", "Are you certain?"],
         "display" : "How certain are you?",
         "write" : "How certain are you?",
         "execute" : "certainty",
@@ -66,6 +74,7 @@ dictionary = [
     {   
         "id" : "featureNames",
         "keywords" : "features names attributes input",
+        "key_sentences": ["What is your input?", "What do you use as input?"],
         "display" : "What is your input?",
         "write" : "What do you use as an input?",
         "execute" : "featureNames",
@@ -74,6 +83,7 @@ dictionary = [
     {   
         "id" : "preview",
         "keywords" : "features preview data sample",
+        "key_sentences": ["Show me some sample data.", "Can you show me some sample data?"],
         "display" : "Show me some sample data.",
         "write" : "Can you show me some sample data?",
         "execute" : "preview",
@@ -81,7 +91,8 @@ dictionary = [
     },
     {   
         "id" : "targetvalues",
-        "keywords" : "what else target outcome outcome predict output",
+        "keywords" : "what else target outcome predict output",
+        "key_sentences": ["What is your output?", "What else can you predict?"],
         "display" : "What is your output?",
         "write" : "What else can you predict?",
         "execute" : "targetvalues",
@@ -90,6 +101,7 @@ dictionary = [
     {   
         "id" : "init",
         "keywords" : "start hello welcome hi",
+        "key_sentences": ["Hi ERIC.", "Hello ERIC", "Hi BOT", "Hello", "Hi", "Hey", "Hey there", "hey ERIC", "Hi there."],
         "display" : "Hi BOT.",
         "write" : "Hi BOT.",
         "execute" : "init",

@@ -77,6 +77,8 @@ import model_columns in Eric_nlp.__init__()
 class Eric_nlp():
   def __init__(self, model_file = "data\\cc.en.300.bin"):
     #"last_..." variables get set from outside of class
+    self.deny_id = "none"
+    self.deny_threshold = 0.62
     self.last_valid_answers = ""
     self.last_clips_type = ""
     self.last_value_asked = ""
@@ -111,6 +113,11 @@ class Eric_nlp():
   def method_comparison(self, input_str, method="cosine", limit=5):
     ret_val = [input_str]
     ranking = self.map_to_eric_function(input_str, method=method, limit=limit)
+    choice = ranking[0]
+    if len(ranking) >= 2:
+      certainty = (ranking[0][1] - ranking[1][1]) * 100
+    else:
+      certainty = -1.0
 
     first = True
     out_lines = [["function_id", "<CALCULATED>"]]
@@ -127,7 +134,7 @@ class Eric_nlp():
       first = False
 
     ret_val.extend(get_pretty_printed_columns(out_lines, align="l"))
-    return ret_val
+    return choice, certainty, ret_val
 
 
 
@@ -173,7 +180,7 @@ class Eric_nlp():
       #that occures for example with "what if age was greater/lesser" and we shouldn't give that key_sentence
       #an extra word (here "age") to match with the input
       if key_index != value_index:
-        print(f"differen indices: returning '{tmp_string}' instead of '{preprocessed_string}'")
+        print(f"different indices: returning '{tmp_string}' instead of '{preprocessed_string}'")
         preprocessed_string = compare_strng
 
     return preprocessed_string
@@ -218,8 +225,8 @@ class Eric_nlp():
       for w in word_list:
         try:
           as_number = float(w)
-          if as_number >= min and as_number <= max:
-            return w
+          # if as_number >= min and as_number <= max:
+          return w
         except ValueError:
           pass
     return None
@@ -231,7 +238,6 @@ class Eric_nlp():
     return self.ft.get_sentence_vector(msg)
 
   #takes message and returns the id of the top <limit> functions in dictionary.dictionary that are most similiar to the message
-  #keys of return dict are integers. lowest key in return dict is best match.
   def get_similarity_ranking(self, input_message, method="cosine", limit=2, normalise = False):
     self.extract_placeholders(input_message)
     input_vector = self.get_sentence_vector(input_message)
@@ -293,18 +299,18 @@ class Eric_nlp():
 
         if update_methods:
           self.best_matches_all_methods[function_id] = dict()
-          self.best_matches_all_methods[function_id]["braycurtis"] = 1.0 - distances["braycurtis"]
+          self.best_matches_all_methods[function_id]["braycurtis"] = (1.0 - distances["braycurtis"]) * 100
           #self.best_matches_all_methods[function_id]["canberra"] = distances["canberra"]
-          self.best_matches_all_methods[function_id]["chebyshev"] = 1.0 - distances["chebyshev"]
+          self.best_matches_all_methods[function_id]["chebyshev"] = (1.0 - distances["chebyshev"]) * 100
           #self.best_matches_all_methods[function_id]["cityblock"] = distances["cityblock"]
-          self.best_matches_all_methods[function_id]["correlation"] = 1.0 - distances["correlation"]
-          self.best_matches_all_methods[function_id]["cosine"] = 1.0 - distances["cosine"]
-          self.best_matches_all_methods[function_id]["euclidean"] = 1.0 - distances["euclidean"]
+          self.best_matches_all_methods[function_id]["correlation"] = (1.0 - distances["correlation"]) * 100
+          self.best_matches_all_methods[function_id]["cosine"] = (1.0 - distances["cosine"]) * 100
+          self.best_matches_all_methods[function_id]["euclidean"] = (1.0 - distances["euclidean"]) * 100
           #self.best_matches_all_methods[function_id]["jensenshannon"] = distances["jensenshannon"]
-          #self.best_matches_all_methods[function_id]["mahalanobis"] = 1.0 - distances["mahalanobis"]
-          self.best_matches_all_methods[function_id]["minkowski"] = 1.0 - distances["minkowski"]
-          #self.best_matches_all_methods[function_id]["seuclidean"] = 1.0 - distances["seuclidean"]
-          self.best_matches_all_methods[function_id]["sqeuclidean"] = 1.0 - distances["sqeuclidean"]
+          #self.best_matches_all_methods[function_id]["mahalanobis"] = (1.0 - distances["mahalanobis"]) * 100
+          self.best_matches_all_methods[function_id]["minkowski"] = (1.0 - distances["minkowski"]) * 100
+          #self.best_matches_all_methods[function_id]["seuclidean"] = (1.0 - distances["seuclidean"]) * 100
+          self.best_matches_all_methods[function_id]["sqeuclidean"] = (1.0 - distances["sqeuclidean"]) * 100
 
     
     top_matches = {key: val for key, val in sorted(self.best_matches.items(), key=lambda item: item[1], reverse=True)}
