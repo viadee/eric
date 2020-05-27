@@ -1,5 +1,8 @@
 #NLP model
-data/
+data/wiki.en.bin
+data/pipeline.pickle
+output/*
+testset_plausible_wrong.txt
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
