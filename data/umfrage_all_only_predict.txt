@@ -1,0 +1,38 @@
+[predict]
+What would happen to them?
+Predict the outcome.
+Make prediction
+Please predict
+predict for current person
+predict for current data
+Please predict!
+predict!
+Make a prediction
+What is the currently predicted outcome?
+Will the instance be predicted as survived?
+
+[whatif]
+
+
+[whatif-gl]
+
+[why]
+
+
+[why-not]
+
+[how-to]
+
+[when]
+
+[certainty]
+
+[featureNames]
+
+[preview]
+
+[targetvalues]
+
+[init]
+
+[none]

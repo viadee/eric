@@ -1,0 +1,41 @@
+[why]
+How comes it that
+
+[why-not]
+How comes it that x is not
+
+[how-to]
+What do I have to enter to
+
+[when]
+Which parameter lead to
+
+[certainty]
+Are you sure?
+Is it save that x happens?
+
+[predict]
+Tell me what happens
+
+[whatif]
+Change the
+
+[whatif-gl]
+What happens to a person older than
+What happens to a person younger than
+
+[featureNames]
+Which parameter did you use
+
+[preview]
+What kind of data did you use to now
+
+[targetvalues]
+What could happen
+What else could happen
+
+[init]
+Hi
+whats up
+Hey
+Listen

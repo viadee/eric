@@ -1,0 +1,53 @@
+[predict]
+What is the currently predicted outcome?
+Will the instance be predicted as survived?
+
+[whatif]
+What happens if the passengers PClass is Second?
+What if the Sex is changed to Male?
+
+[whatif-gl]
+What if the Age is greater?
+What happens if the Fare is increased?
+How does the outcome change by a lower number of Relatives?
+
+[why]
+Why is the instance predicted as died?
+
+
+[why-not]
+Why isn’t the instance's predicted value survived?
+
+[how-to]
+How to change the instance to survived?
+How can the instance be changed to survived?
+
+[when]
+When is the class survived likely?
+Which features are needed for survived?
+
+[certainty]
+How certain is the prediction? 
+What is the probability of the prediction?
+
+[featureNames]
+Which features are used?
+What is the input for the prediction?
+What are the features?
+What are the names of the features?
+
+[preview]
+Show me sample data
+What does the training data look like?
+Show me a preview of the training data
+
+[targetvalues]
+What are the possible classes?
+What can be the outcome?
+What are the class labels?
+What output exists?
+
+[init]
+Hi Eric! 
+
+[none]
