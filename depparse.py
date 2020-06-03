@@ -2,7 +2,7 @@ import pickle
 import stanza
 import test_stuff
 from datetime import datetime
-from dictionary import cd, dictionary
+from dictionary import cd, dictionary, nlp_dictionary
 import eric_nlp
 
 
@@ -51,12 +51,12 @@ def depparse(sentences, pipeline):
 
 
 def init_stanza(lang):
-    print(f"loading pipeline for language '{lang}'")
-    #with open("data\\pipeline.pickle", "rb") as f:
-    #    stanza_pipeline = pickle.load(f)
-    stanza.download(lang)
-    stanza_pipeline = stanza.Pipeline(lang=lang, processors="tokenize,mwt,pos,lemma,depparse")
-    print("successfully loaded pipeline")
+    print(f"loading stanza pipeline for language '{lang}'")
+    with open("data\\pipeline.pickle", "rb") as f:
+        stanza_pipeline = pickle.load(f)
+    # stanza.download(lang)
+    # stanza_pipeline = stanza.Pipeline(lang=lang, processors="tokenize,mwt,pos,lemma,depparse")
+    print("successfully loaded stanza pipeline")
     return stanza_pipeline
 
 '''
@@ -70,7 +70,7 @@ def create_roots_matrix(roots, file_name, csv_sep = ";", empty_cell = "0"):
     first = True
     for root, functions in roots.items():
         line = f"{root}"
-        tmp = [x["id"] for x in dictionary]
+        tmp = [x["id"] for x in nlp_dictionary]
         tmp.append("none")
         for fct_id in tmp:
             if first:
@@ -169,7 +169,7 @@ def get_word(wanted_id, words):
     return ""
 
 '''
-takes a tuple as in "deprel" in dictionary.dictionary.
+takes a tuple as in "deprel" in dictionary.nlp_dictionary.
 returns list of tuples. if master_tuple was a simple tuple, the list only contains that tuple
 if master_tuple has lists as elements, these get split so that every tuple in the returned list has only strings as elements
 Example:
@@ -198,7 +198,7 @@ def generate_sub_tuples(master_tuple):
 
 '''
 takes a word-object of a depparse-word and a string element from a tuple (not a list-element. use generate_sub_tuples() first)
-checks if dictionary.category_tag (by default "#") is in tuple_element. If so, it extracts which attribute (i.e. in front of "#") is wanted.
+checks if dictionary.cd (by default "#") is in tuple_element. If so, it extracts which attribute (i.e. in front of "#") is wanted.
 then returns the corresponding attribute value of word_object and the part right of "#" in tuple_element
 if "#" was not in tuple_element, it returns tuple_element as it is and the default attribute of word_object
 also needs an eric, to invoke replacement of placeholders
@@ -280,7 +280,7 @@ def get_comparison_attributes(word_object, tuple_element, eric, default="text"):
     return ret1, ret2
 
 '''
-word_attribute should be from the user input, tuple_attribute one element of a tuple from the depparse templates in dictionary.
+word_attribute should be from the user input, tuple_attribute one element of a tuple from the depparse templates in dictionary.nlp_dictionary
 it's called attribute, not element because it should only be called at the end of get_comparison_attributes() which extracts attributes from word objects (e.g. the lemma, upos or deprel, etc.)
 word_attribute needs to be included even though it will not have any placeholders. In the case, that "<outcome>" is in tuple_attribute, word_attribute needs to be checked
 if it is a different form of the possible outcomes. This gets checked via the eric.model_columns["class"]["phrasings"] dict which has all possible outcomes as keys (here "survived" and "died")
@@ -300,7 +300,7 @@ def replace_depparse_placeholders(word_attribute, tuple_attribute, eric):
         if ret_word_attribute in eric.placeholders["<key>"].values():
             ret_tuple_attribute = ret_word_attribute
 
-    test_stuff.logger(f"DEPREPLACE: {word_attribute} // {ret_word_attribute} ::::: {tuple_attribute} // {ret_tuple_attribute} ::::: {eric.placeholders}")
+    #test_stuff.logger(f"DEPREPLACE: {word_attribute} // {ret_word_attribute} ::::: {tuple_attribute} // {ret_tuple_attribute} ::::: {eric.placeholders}")
     return ret_word_attribute, ret_tuple_attribute
 
 #looks for the head/mother node of word in tree and returns it (or a representing dictionary if head is root).
@@ -321,7 +321,7 @@ def get_mother(word, tree):
 
 
 
-#takes a depparse tree t and goes through the depparse tree templates in dictionary.dictionary.
+#takes a depparse tree t and goes through the depparse tree templates in dictionary.nlp_dictionary
 #returns a list of tuples (fct_id, tree template) with a tuple for every found match.
 def get_matching_dictionary_trees(tree, eric):
     tab = "\t"
@@ -329,10 +329,11 @@ def get_matching_dictionary_trees(tree, eric):
     deprel_index = 1
     child_index = 2
     all_matches = []
-    for d in dictionary:
-        test_stuff.logger(f"/////: {d['id'].upper()} ://///")
+#    test_stuff.logger(f"{tab*1}DADICT: {nlp_dictionary}")
+    for d in nlp_dictionary:
+        #test_stuff.logger(f"/////: {d['id'].upper()} ://///")
         for depparse_template in d["depparse"]:
-            test_stuff.logger(f"{tab*1}template: {depparse_template}")
+            #test_stuff.logger(f"{tab*1}template: {depparse_template}")
             used_words = [] #already matched words. saved to not use them twice
             template_match = True #stays true unless at least one tuple in the demplate does not match
             match_sub_tuples = [] #stores the sub_tuples that matched in this template. So when a total match is achieved, the used subtuples can be viewed
@@ -340,23 +341,23 @@ def get_matching_dictionary_trees(tree, eric):
             if len(depparse_template) == 0:
                 continue
             for template_tuple in depparse_template:
-                test_stuff.logger(f"{tab*2}tuple: {template_tuple}")
+                #test_stuff.logger(f"{tab*2}tuple: {template_tuple}")
                 tuple_correct = False
                 sub_tuples = generate_sub_tuples(template_tuple)
                 for sub_tuple in sub_tuples:
-                    test_stuff.logger(f"{tab*3}sub_tuple: {sub_tuple[mother_index]}, {sub_tuple[deprel_index]}, {sub_tuple[child_index]}")
+                    #test_stuff.logger(f"{tab*3}sub_tuple: {sub_tuple[mother_index]}, {sub_tuple[deprel_index]}, {sub_tuple[child_index]}")
                     sub_tuple_correct = False
                     for word in tree.words:
                         if word.id in used_words:
-                            test_stuff.logger(f"{tab*4}{word.text.upper()}: >>>skipped<<<")
+                            #test_stuff.logger(f"{tab*4}{word.text.upper()}: >>>skipped<<<")
                             continue
                         
-                        test_stuff.logger(f"{tab*4}{word.text.upper()}: id: {word.id} :: text: {word.text} :: lemma: {word.lemma} :: upos: {word.upos} :: xpos: {word.xpos} :: feats: {word.feats} :: head: {word.head} :: deprel: {word.deprel} :: misc: {word.misc}")
+                        #test_stuff.logger(f"{tab*4}{word.text.upper()}: id: {word.id} :: text: {word.text} :: lemma: {word.lemma} :: upos: {word.upos} :: xpos: {word.xpos} :: feats: {word.feats} :: head: {word.head} :: deprel: {word.deprel} :: misc: {word.misc}")
                         
                         #the following get generated over function to use different attributes of the words (see function for more info)
                         child_val, tuple_child_val = get_comparison_attributes(word, sub_tuple[child_index], eric)
                         deprel_val, tuple_deprel_val = get_comparison_attributes(word, sub_tuple[deprel_index], eric, default="deprel")
-                        test_stuff.logger(f"{tab*5}vals: {child_val},{tuple_child_val}, {deprel_val}, {tuple_deprel_val}")
+                        #test_stuff.logger(f"{tab*5}vals: {child_val},{tuple_child_val}, {deprel_val}, {tuple_deprel_val}")
 
                         child_matched = True if child_val.lower() == tuple_child_val.lower() else False
                         deprel_matched = True if deprel_val.lower() == tuple_deprel_val.lower() else False
@@ -467,8 +468,8 @@ def dictionary_templates_test(tree):
         test_stuff.logger("no root found:")
         test_stuff.logger(tree.words)
 
-    test_stuff.logger("Testing Tree:")
-    for d in dictionary:
+    #test_stuff.logger("Testing Tree:")
+    for d in nlp_dictionary:
         test_stuff.logger(f"MATCHING TO {d['id']}")
         if "depparse" not in d.keys():
             continue
@@ -476,12 +477,12 @@ def dictionary_templates_test(tree):
         for dep_template in d["depparse"]:
             template_counter += 1
             correct_tupel_counter = 0 #if correct match, correct_tupel_counter should be equal to the number of elements in dep_template
-            test_stuff.logger(f"\t\t template {template_counter}")
+            #test_stuff.logger(f"\t\t template {template_counter}")
             for tup in dep_template:
                 found_mother = False
                 found_child = False
                 found_deprel = False
-                test_stuff.logger(f"\t\t\t{tup}")
+                #test_stuff.logger(f"\t\t\t{tup}")
                 child_is_list = True if isinstance(tup[tchild], list) else False
                 deprel_is_list = True if isinstance(tup[tdeprel], list) else False
                 
@@ -492,8 +493,8 @@ def dictionary_templates_test(tree):
                             root_correct = True
                     elif root.text == tup[tchild]:
                         root_correct = True
-                    else:
-                        test_stuff.logger(f"\t\t\t\t {root.text} != {tup[tmother]}")
+                    #else:
+                        #test_stuff.logger(f"\t\t\t\t {root.text} != {tup[tmother]}")
 
                     if root_correct:
                         found_mother = True
@@ -532,13 +533,13 @@ def dictionary_templates_test(tree):
                         if found_mother and found_deprel and found_child:
                             break
                 if found_mother and found_deprel and found_child:
-                    test_stuff.logger("\t\t\t\t\t Tupel correct!")
+                    #test_stuff.logger("\t\t\t\t\t Tupel correct!")
                     correct_tupel_counter += 1
             if correct_tupel_counter == len(dep_template):
-                test_stuff.logger(f"///Found match ({d['id']}): {dep_template}\n")
+                #test_stuff.logger(f"///Found match ({d['id']}): {dep_template}\n")
                 return f"///Found match: {dep_template}\n"
             else:
-                test_stuff.logger(f"NO MATCH. mother: {found_mother}, deprel: {found_deprel}, child: {found_child}")
+                #test_stuff.logger(f"NO MATCH. mother: {found_mother}, deprel: {found_deprel}, child: {found_child}")
 
 
                 '''
@@ -621,7 +622,7 @@ def main():
     output_path = "output\\depparse\\data_analysis\\"
     roots_out_file = f"{output_path}roots.csv"
 
-    input_accumulated = test_stuff.merge_input_files(input_files)#{x["id"]: x["key_sentences"] for x in dictionary}
+    input_accumulated = test_stuff.merge_input_files(input_files)#{x["id"]: x["key_sentences"] for x in nlp_dictionary}
     input_accumulated = list(set(input_accumulated))
     input_accumulated_as_dict = {}
     for x in input_accumulated:
@@ -792,7 +793,7 @@ if __name__ == "__main__":
     
     #test_some_sentences()
 
-    for d in dictionary:
+    for d in nlp_dictionary:
         print(d["id"])
         try:
             x = d['depparse'][0]

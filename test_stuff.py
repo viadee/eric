@@ -1,5 +1,5 @@
 import eric_nlp
-from dictionary import dictionary
+from dictionary import dictionary, nlp_dictionary
 import copy
 from datetime import datetime
 import time
@@ -68,6 +68,8 @@ def get_file_lines(file_name):
     return x.split("\n")
 
 def list_to_file(the_list, filename, mode="w", encoding="utf-8"):
+    if not isinstance(the_list, list):
+        the_list = [the_list]
     with open(filename, mode, encoding=encoding) as f:
         for row in the_list:
             f.write(f"{row}\n")
@@ -77,7 +79,7 @@ def list_to_file(the_list, filename, mode="w", encoding="utf-8"):
 
 #test sentences should be a list of tuples (function_id_gold, the_sentence)
 def similarity_tester(method, limit, eric, output_file, test_sentences="", comment=["No comment given", "Make sense of it on your own", "Text speaks for itself"]):
-    used_key_sentences = {x["id"]: x["key_sentences"] for x in dictionary}
+    used_key_sentences = {x["id"]: x["key_sentences"] for x in nlp_dictionary}
     out_all = [
         f"Every entry shows a timestamp, then the input sentence and the top {limit} matches that were found (if that many exist).",
         "entries sorted by <CALCULATED>. The other column headline in <> is the algorithm that was used.",
@@ -201,10 +203,10 @@ def merge_input_files(file_list):
     
     return list(set(ret_val))
 
-#returns list with tuples (fct_id, key_sentence, tree) for all key_sentences for all functions in dictionary.dictionary
+#returns list with tuples (fct_id, key_sentence, tree) for all key_sentences for all functions in dictionary.nlp_dictionary
 def get_key_sentence_depparse_trees(eric_instance, stanza_pipeline):
     ret_val = []
-    for d in dictionary:
+    for d in nlp_dictionary:
         for key_sentence in d["key_sentences"]:
             ks = eric_instance.preprocessing(key_sentence, "key_sentence")
             ks_tree = stanza_pipeline(ks).sentences[0]
@@ -315,14 +317,14 @@ def similarity_depparse_combination(eric, model, method, output_path, output_nam
             out = []
             depparse_necessary = False
             preprocessed_sentence = eric.preprocessing(sentence, "usr_input")
-            similarity_ranking = eric.get_similarity_result(sentence, limit=5)
+            similarity_ranking = eric.get_similarity_result(preprocessed_sentence, limit=5)
             #tuple (fct_id, matching similarity)
             similarity_result = (similarity_ranking[0][0], similarity_ranking[0][1])
             result = similarity_result[0]
             if similarity_result[1] < eric.depparse_threshold:
                 depparse_necessary = True
-                prepped_sentence = eric.preprocessing(sentence, "usr_input")
-                tree = sp(prepped_sentence).sentences[0]
+                preprocessed_depparse_sentence = eric.preprocessing(sentence, "usr_input")
+                tree = sp(preprocessed_depparse_sentence).sentences[0]
                 depparse_ranking = depparse.get_matching_dictionary_trees(tree, eric)
                 try:
                     if len(depparse_ranking) == 0:
@@ -415,7 +417,6 @@ if __name__ == "__main__":
     
 
     in_files = [f"data\\umfrage_input_{x}_cleaned.txt" for x in range(1,5)]
-    in_files = [f"data\\testset_{x}.txt" for x in range(1,4)]
     models = [f"{model_path}{model}" for model in models]
     eric = eric_nlp.Eric_nlp()
     sp = depparse.init_stanza("en")

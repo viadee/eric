@@ -3,6 +3,9 @@ data/wiki.en.bin
 data/pipeline.pickle
 output/*
 testset_plausible_wrong.txt
+data/chat_bak.js
+data/dictionary_bak.py
+data/server_bak.py
 
 # Byte-compiled / optimized / DLL files
 __pycache__/

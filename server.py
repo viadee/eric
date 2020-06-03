@@ -1,5 +1,6 @@
 import clips
 import time
+import eric_nlp
 import pandas as pd 
 from sklearn.model_selection import train_test_split # Import train_test_split function
 import numpy as geek
@@ -30,6 +31,13 @@ class ruleEnvironment:
         self.fact_type = "input ui"
         self.clips_type = "symbol"
         self.set_of_functions = dictionary
+
+        
+        #NLP components        
+        self.nlp_model_file = "data\\wiki.en.bin"
+        self.nlp = eric_nlp.Eric_nlp()
+        self.nlp.load_model(self.nlp_model_file)
+        self.nlp.init_depparsing("en")
 
     def initEnvironment(self):
         self.env.define_function(self.mlObject.predict_connector, name="predict_connector")
@@ -151,6 +159,12 @@ class ruleEnvironment:
             with open(image_url, "rb") as image_file:
                 image = base64.b64encode(image_file.read()).decode('utf-8')
 
+        parsed_valid_answers = eval(valid_answers)
+        if isinstance(parsed_valid_answers, dict):
+            self.nlp.valid_answers = parsed_valid_answers
+        else:
+            self.nlp.valid_answers = ""
+
         message = {'type':'message', 'text': str(text), 'image': image, 'valid-answers': eval(valid_answers), 'clipboard': eval(clipboard)}
         MyServerProtocol.broadcast_message(message)
 
@@ -172,6 +186,27 @@ class ruleEnvironment:
         print("Message to clips: " + message)
         print("fact type: " + self.fact_type)
         print("clips type: " + self.clips_type)
+
+        if not self.fact_type == 'skip':
+            #yes/no phrasings
+            if message.lower() in self.nlp.yes_phrasings:
+                message = "yes"
+            elif message.lower() in self.nlp.no_phrasings:
+                message = "no"
+            
+            #is a specific answer expected?
+            if self.nlp.valid_answers:
+                #answers stored from function query?
+                #if: currently problematic because for every answer, message_from_clips will be triggered again
+
+                #check if current input is a valid answer
+                if not self.nlp.is_valid_answer(message):
+                    ret_message = {'type':'message', 'text': 'I cannot use this input here', 'image': "", 'valid-answers': f"{self.nlp.valid_answers}", 'clipboard': ""}
+                    MyServerProtocol.broadcast_message(ret_message)
+                    return
+            #function selection expected
+            else:
+                message = self.nlp.map_to_eric_function(message)                
     
         if(self.fact_type == 'skip'):
             self.env.assert_string('(' + message + ')')

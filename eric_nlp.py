@@ -1,9 +1,10 @@
-from dictionary import dictionary, reserved_placeholder_words
+from dictionary import dictionary, nlp_dictionary, reserved_placeholder_words
 import numpy as np
 import depparse
 import string
 import fasttext
 import scipy
+import re
 from scipy import spatial
 
 d = {
@@ -88,15 +89,12 @@ class Eric_nlp():
     self.ft = None #model needs to be loaded separately
     self.stanza_pipeline = None #loaded separately
     self.model = ""
-    self.method = "cosine" #default method
+    self.method = "minkowski" #default method
     self.language = "en"
     self.deny_id = "none"
     self.deny_threshold = 0.68#0.62 #below this value, eric says, he does not understand the message
     self.depparse_threshold = 0.8 #if the best similarity gets below this value, depparsing is used to increase certainty
-    self.last_valid_answers = ""
-    self.last_clips_type = ""
-    self.last_value_asked = ""
-    self.original_message = ""
+    self.valid_answers = ""
     self.normalise_embedding = False
     self.model_columns = d
     self.best_matches = dict()
@@ -108,6 +106,8 @@ class Eric_nlp():
     self.init_key_sentences()#key: function-id, value: list of strings
     self.accepted_special_chars = ["=", "<", ">"]
     self.stop_chars = [x for x in list(string.punctuation) if x != "'" and x not in self.accepted_special_chars]
+    self.yes_phrasings = ["yes", "y", "yay", "yas", "ja", "sure", "ok", "okay", "k", "kk", "of course", "go ahead", "continue"]
+    self.no_phrasings = ["nay", "no", "n", "nah", "negative", "nope", "never", "stop"]
     self.subject_phrasings = [#phrasings of the "subject" to which the outcome applies to. With titanic for example these are persons for which the outcome can be "died" or "survived"
       "the person",
       "a person",
@@ -157,15 +157,18 @@ class Eric_nlp():
 
   def load_model(self, model_file):
     #"data\\cc.en.300.bin"
-    print(f"loading model from '{model_file}'")
+    print(f"loading FastText model from '{model_file}'")
     self.ft = fasttext.load_model(model_file)
     self.model = model_file
-    print("model successfully loaded")
+    print("FastText model successfully loaded")
+
+  def init_depparsing(self, language):
+    self.stanza_pipeline = depparse.init_stanza(language)
 
   #reads all key sentences for functions and stores them in the calling object's attribute key_sentences
   def init_key_sentences(self):
     self.key_sentences = dict()
-    for d in dictionary:
+    for d in nlp_dictionary:
       self.key_sentences[d["id"]] = d["key_sentences"]
   
   #take a message string and return the id of the function in dictionary.dictionary that is most likely corresponding to the message
@@ -181,6 +184,21 @@ class Eric_nlp():
 
     return match
   
+  def is_valid_answer(self, message):
+    if self.valid_answers["type"] == "regex":
+      if re.match(self.valid_answers["value"], message):
+        print(f"matched '{message}' to '{self.valid_answers['value']}'")
+        return True
+    elif self.valid_answers["type"] == "selection":
+      valid_answers_lower = [x.lower() for x in self.valid_answers["value"]]
+      if message.lower() in valid_answers_lower:
+        print(f"matched '{message}' to '{valid_answers_lower}'")
+        return True
+    else:
+      print(f"ERROR: unknown answer type: {self.valid_answers}")
+  
+    print(f"could not match '{message}' to '{self.valid_answers}'")
+    return False
 
   def get_function_match(self, sentence):
     if not self.ft:
@@ -217,7 +235,7 @@ class Eric_nlp():
     return result
 
   #returns tuple (fct_id, similarity in percent) or list of them
-  def get_similarity_result(self, sentence, limit=1):
+  def get_similarity_result(self, sentence, limit=1, gold="no gold given"):
     input_vector = self.get_sentence_vector(sentence)
     if self.normalise_embedding:
       input_vector = normalise_vector(input_vector)
@@ -423,7 +441,7 @@ class Eric_nlp():
     ret_val = self.remove_words_from_string(strng, self.stop_words)
     return ret_val
 
-  #replace the placeholders of dictionary["key_sentences"] with actual words that were previously extracted from the user input
+  #replace the placeholders of nlp_dictionary["key_sentences"] with actual words that were previously extracted from the user input
   def replace_placeholders(self, strng):
     try:
       key_value_pairs = list(self.placeholders["<key>"].items())
@@ -527,7 +545,7 @@ class Eric_nlp():
   '''
   go through string word by and see if you can find replacements for placeholders
   return None but saves everything in object's attribute self.placeholders
-    key: placeholders as they occur in dictionary.dictionary. as of now these are <key>, <outcome>
+    key: placeholders as they occur in dictionary.nlp_dictionary. as of now these are <key>, <outcome>
     value:  if key==<outcome>: one of the values of server.d["class"]["values"]
             if key==<key>: another dict with 
               key: column name (of model) that was found in input

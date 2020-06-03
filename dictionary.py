@@ -1,24 +1,112 @@
 #Punctuation in the key_sentences usually gets removed in preprocessing
-cd = "#" #do not use ":" as it is already used by depparse for splitting passive/active deprel differentiation
+cd = "#" #category delimiter to acces different attributes of a word (e.g. lemma instead of text: f"lemma{cd}predict"). Do not use ":" as it is already used by depparse for splitting passive/active deprel differentiation and such
 reserved_placeholder_words = ["<outcome>", "<key>", "<value>", "<subject>"]
 
-'''
-Notes to self for enhancing the depparsing:
-    mark optional tuples (as of now, i commented them out)
-    make deprel "don't care" possible
-    mark templates that have to match completely with no left over nodes in the input
-    function "init" may work best without depparse or a modified version of it, as greetings can take virtually any form
-    possibility to refer to previous tuple
-    possibility to ignore root
-    match usr_input directly to fuction id
-overall notes:
-    alternative words for "prediction" depending on model. search this file for the following comment: "#["person", "prediction"] would be ideal, but only for the titanic model"
-'''
+
 dictionary = [
     {   
         "id" : "predict",
         "keywords" : "predict predictions classify classifications",
+        "display" : "Make me a prediction.",
+        "write" : "Can you please make me a prediction?",
+        "execute" : "predict",
+        "description": "The 'predict' command will allow you to infer a prediction from your data intance. In case you did not provide a data instance yet, ERIC will ask you to provide a value for each feature."
+    },
+    {
+        "id": "whatif",
+        "keywords" : "what if change",
+        "display" : "What if X equals Z?",
+        "write" : "What if X equals Z?",
+        "execute" : "whatif",
+        "description": "The 'what-if' command gives you the opportunity to alter the data instance that ERIC is talking about. There will be a new entry on the clipboard."
+    },
+    {
+        "id": "whatif-gl",
+        "keywords" : "what if greater less change",
+        "display" : "What if X was greater/less?",
+        "write" : "What if X was greater/less?",
+        "execute" : "whatif-gl",
+        "description": "The 'what-if-greater-less' command fixes the values of all but one features and pertubates the values of this one feature. A graph will show you how the prediction changes."
+    },
+    {
+        "id": "why",
+        "keywords" : "why",
+        "display" : "Why did you predict X?",
+        "write" : "Why did you predict X?",
+        "execute" : "why",
+        "description": "The 'why' command provides information about why the ERIC predicted a specific output. It will present you an explanation. Afterwards will ask you to provide feedback."
+    },
+    {
+        "id": "why-not",
+        "keywords" : "why not",
+        "display" : "Why didn't you predict Z?",
+        "write" : "Why didn't you predict Z?",
+        "execute" : "why-not",
+        "description": "The 'why-not' command provides information on why an alternative outcome was not predicted. It will present you an explanation. Afterwards will ask you to provide feedback."
+    },
+    {
+        "id": "how-to",
+        "keywords" : "how",
+        "display" : "How do I get Y?",
+        "write" : "How do I get Y?",
+        "execute" : "how-to",
+        "description": "The 'how-to' command tells about the changes that must be done to get an alternative prediction outcome."
+    },
+    {
+        "id": "when",
+        "keywords" : "when",
+        "display" : "When do you predict Y?",
+        "write" : "When do you predict Y?",
+        "execute" : "when",
+        "description": "The 'when' command tells you for what feature values the model produces a certain outcome most likely."
+    },
+    {   
+        "id" : "certainty",
+        "keywords" : "how certain uncertain are you sure",
+        "display" : "How certain are you?",
+        "write" : "How certain are you?",
+        "execute" : "certainty",
+        "description": "The 'certainty' command will reveal the certainty of a previously presented claim."
+    },
+    {   
+        "id" : "featureNames",
+        "keywords" : "features names attributes input",
+        "display" : "What is your input?",
+        "write" : "What do you use as an input?",
+        "execute" : "featureNames",
+        "description": "The 'input' command will tell about the input features the AI uses to make a prediction."
+    },
+    {   
+        "id" : "preview",
+        "keywords" : "features preview data sample",
+        "display" : "Show me some sample data.",
+        "write" : "Can you show me some sample data?",
+        "execute" : "preview",
+        "description": "The 'preview' command will give you a small preview of how training data instances look like."
+    },
+    {   
+        "id" : "targetvalues",
+        "keywords" : "what else target outcome outcome predict output",
+        "display" : "What is your output?",
+        "write" : "What else can you predict?",
+        "execute" : "targetvalues",
+        "description": "The 'output' command will tell about the output the AI can generate."
+    },
+    {   
+        "id" : "init",
+        "keywords" : "start hello welcome hi",
+        "display" : "Hi BOT.",
+        "write" : "Hi BOT.",
+        "execute" : "init",
+        "description": ""
+    }
+]
+
+nlp_dictionary = [
+    {   
+        "id" : "predict",
         "key_sentences": [
+            "predict",
             "Make a prediction for the current instance",
             "Make a prediction for the current data",
             "Can you please make me a prediction?", 
@@ -27,8 +115,7 @@ dictionary = [
             "prediction",
             "Can you predict something for me?",
             "predict for current instance",
-            "predict for current data",
-            "predict"
+            "predict for current data"
         ],
         "depparse": [
             [#0
@@ -65,16 +152,12 @@ dictionary = [
             [#7
                 ("root", "root", "predict")
             ]
-        ],
-        "display" : "Make me a prediction.",
-        "write" : "Can you please make me a prediction?",
-        "execute" : "predict",
-        "description": "The 'predict' command will allow you to infer a prediction from your data intance. In case you did not provide a data instance yet, ERIC will ask you to provide a value for each feature."
+        ]
     },
     {
         "id": "whatif",
-        "keywords" : "what if change",
-        "key_sentences": [ 
+        "key_sentences": [
+            "whatif",
             "What if <key> equals <value>?",
             "What happens if <key> equals <value>?",
             "What if you change <key> to <value>?",
@@ -202,16 +285,12 @@ dictionary = [
                 ([f"lemma{cd}change", f"lemma{cd}set"], "obj", [f"upos{cd}NOUN", f"upos{cd}PROPN"]),
                 ([f"lemma{cd}change", f"lemma{cd}set"], ["obj", "obl"], [f"upos{cd}NOUN", f"upos{cd}PROPN"])
             ]
-        ],
-        "display" : "What if X equals Z?",
-        "write" : "What if X equals Z?",
-        "execute" : "whatif",
-        "description": "The 'what-if' command gives you the opportunity to alter the data instance that ERIC is talking about. There will be a new entry on the clipboard."
+        ]
     },
     {
         "id": "whatif-gl",
-        "keywords" : "what if greater less change",
         "key_sentences": [
+            "whatif-gl",
             "What if <key> was greater or less?",
             "What if <key> was greater / less?",
             "What if <key> was over or under <value>?",
@@ -388,19 +467,15 @@ dictionary = [
                 ([f"lemma{cd}value", f"lemma{cd}number", f"lemma{cd}amount", f"lemma{cd}degree"], "compound", [f"lemma{cd}increase", f"lemma{cd}decrease", "lower", "higher", "greater", "bigger", "smaller"]),
                 ([f"lemma{cd}value", f"lemma{cd}number", f"lemma{cd}amount", f"lemma{cd}degree"], "nmod", "<key>")
             ]
-        ],
-        "display" : "What if X was greater/less?",
-        "write" : "What if X was greater/less?",
-        "execute" : "whatif-gl",
-        "description": "The 'what-if-greater-less' command fixes the values of all but one features and pertubates the values of this one feature. A graph will show you how the prediction changes."
+        ]
     },
     {
         "id": "why",
-        "keywords" : "why",
         "key_sentences": [ 
+            "why",
             "Why did you predict <outcome>?",
             "Why did you predict that?",
-            "why do you think that?",
+            "Why do you think that?",
             "Why <outcome>?",
             "Why",
             "Explain <outcome>",
@@ -433,16 +508,12 @@ dictionary = [
             [#4
                 ("root", "root", ["why", f"lemma{cd}explanation", f"lemma{cd}explain"])
             ]
-        ],
-        "display" : "Why did you predict X?",
-        "write" : "Why did you predict X?",
-        "execute" : "why",
-        "description": "The 'why' command provides information about why the ERIC predicted a specific output. It will present you an explanation. Afterwards will ask you to provide feedback."
+        ]
     },
     {
         "id": "why-not",
-        "keywords" : "why not",
         "key_sentences": [
+            "why-not",
             "Why didn't you predict <outcome>?",
             "Why did you not predict <outcome>?",
             "Why not <outcome>?",
@@ -469,16 +540,12 @@ dictionary = [
                 ("root", "root", "why"),
                 ("why", "advmod", f"lemma{cd}not")
             ]
-        ],
-        "display" : "Why didn't you predict Z?",
-        "write" : "Why didn't you predict Z?",
-        "execute" : "why-not",
-        "description": "The 'why-not' command provides information on why an alternative outcome was not predicted. It will present you an explanation. Afterwards will ask you to provide feedback."
+        ]
     },
     {
         "id": "how-to",
-        "keywords" : "how",
         "key_sentences": [
+            "how",
             "How do I get <outcome>?",
             "What has to change to get <outcome>?"
             "What has to change for <outcome>?"
@@ -513,16 +580,12 @@ dictionary = [
                 ("get", "obj", [f"upos{cd}NOUN", f"upos{cd}PROPN"]),
                 ([f"upos{cd}NOUN", f"upos{cd}PROPN"], "amod", "<outcome>")
             ]
-        ],
-        "display" : "How do I get Y?",
-        "write" : "How do I get Y?",
-        "execute" : "how-to",
-        "description": "The 'how-to' command tells about the changes that must be done to get an alternative prediction outcome."
+        ]
     },
     {
         "id": "when",
-        "keywords" : "when",
         "key_sentences": [
+            "when",
             "When do you predict <outcome>?",
             "When do I get <outcome>?",
             "When is the outcome <outcome>?",
@@ -565,16 +628,12 @@ dictionary = [
                 ("root", "root", "<outcome>"),
                 ("when", ["advmod", "mark"], "when")
             ]
-        ],
-        "display" : "When do you predict Y?",
-        "write" : "When do you predict Y?",
-        "execute" : "when",
-        "description": "The 'when' command tells you for what feature values the model produces a certain outcome most likely."
+        ]
     },
     {   
         "id" : "certainty",
-        "keywords" : "how certain uncertain are you sure",
         "key_sentences": [
+            "certainty",
             "How certain are you?",
             "How sure are you?",
             "How certain is the outcome?",
@@ -601,16 +660,12 @@ dictionary = [
             [#3
                 ("certainty", "obl", "what")
             ]
-        ],
-        "display" : "How certain are you?",
-        "write" : "How certain are you?",
-        "execute" : "certainty",
-        "description": "The 'certainty' command will reveal the certainty of a previously presented claim."
+        ]
     },
     {   
         "id" : "featureNames",
-        "keywords" : "features names attributes input",
         "key_sentences": [
+            "featureNames",
             "What is your input?",
             "What do you use as input?",
             "What are the input features?",
@@ -659,16 +714,12 @@ dictionary = [
                 ("root", "root", f"lemma{cd}feature"),
                 (f"lemma{cd}feature", ["det", "nsubj"], ["what", "which"])
             ]
-        ],
-        "display" : "What is your input?",
-        "write" : "What do you use as an input?",
-        "execute" : "featureNames",
-        "description": "The 'input' command will tell about the input features the AI uses to make a prediction."
+        ]
     },
     {   
         "id" : "preview",
-        "keywords" : "features preview data sample",
         "key_sentences": [
+            "preview",
             "Show me some sample data.",
             "Can you show me some sample data?",
             "Sample data",
@@ -704,16 +755,12 @@ dictionary = [
                 ("root", "root", "data"),
                 ("data", "compound", ["sample", "training"])
             ]
-        ],
-        "display" : "Show me some sample data.",
-        "write" : "Can you show me some sample data?",
-        "execute" : "preview",
-        "description": "The 'preview' command will give you a small preview of how training data instances look like."
+        ]
     },
     {   
         "id" : "targetvalues",
-        "keywords" : "what else target outcome predict output",
         "key_sentences": [
+            "targetvalues",
             "What outputs are possible?",
             "Which outputs are possible?",
             "What predictions are possible?",
@@ -757,16 +804,12 @@ dictionary = [
                 ("what", "nsubj", [f"lemma{cd}outcome", f"lemma{cd}result", f"lemma{cd}class", f"lemma{cd}output", f"lemma{cd}prediction"]),
                 ([f"lemma{cd}outcome", f"lemma{cd}result", f"lemma{cd}class", f"lemma{cd}output", f"lemma{cd}prediction"], "amod", "possible")
             ]
-        ],
-        "display" : "What is your output?",
-        "write" : "What else can you predict?",
-        "execute" : "targetvalues",
-        "description": "The 'output' command will tell about the output the AI can generate."
+        ]
     },
     {   
         "id" : "init",
-        "keywords" : "start hello welcome hi",
         "key_sentences": [
+            "init",
             "Hi ERIC.",
             "Hello ERIC",
             "Hi BOT",
@@ -806,11 +849,39 @@ dictionary = [
                 ("let", "xcomp", [f"lemma{cd}start", f"lemma{cd}begin"]),
                 ([f"lemma{cd}start", f"lemma{cd}begin"], "obj", [f"upos{cd}PROPN", f"upos{cd}PRON"])
             ]
+        ]
+    },
+    {
+        'id': 'getImportance',
+        'key_sentences': [
+            "getImportance"
         ],
-        "display" : "Hi BOT.",
-        "write" : "Hi BOT.",
-        "execute" : "init",
-        "description": ""
-    }
-]
+        'depparse': [
 
+        ]
+    },
+    {
+        'id': 'getNLargest',
+        'keywords': 'nth largest large get',
+        'key_sentences': [
+            "getNLargest"
+        ],
+        'depparse': [
+
+        ]
+    },
+    {
+        'id': 'getFeatureValue',
+        'key_sentences': [
+            "getFeatureValue"
+        ],
+        'depparse': [],
+    },
+    {
+        'id': 'addition',
+        'key_sentences': [
+            "addition"
+        ],
+        'depparse': [],
+    },
+]

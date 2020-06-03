@@ -135,6 +135,16 @@ class Chat extends React.Component{
             }), () => {
                 this.setState({ chat_message: '', filtered_dictionary: this.state.dictionary, active_answer: null });
             })
+        }else if(event.keyCode === 13 && !this.state.awaiting_message){
+            event.preventDefault();
+            let raw_message = this.state.chat_message
+            this.sendMessage(raw_message)
+            let today = new Date()
+            this.setState(prevState => ({
+                messages: [...prevState.messages, {id: Math.floor(Math.random() * 1000000), senderId:"User", text: raw_message, time: this.getTime()}]
+            }), () => {
+                this.setState({ chat_message: '', filtered_dictionary: this.state.dictionary, active_answer: null });
+            })
         }else if(event.keyCode === 13){
             event.preventDefault();
         }
