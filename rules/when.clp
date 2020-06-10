@@ -11,6 +11,16 @@
                         (fact-type "input when-value ")))
 )
 
+;When type asking for prediction outcome with passed parameters
+(defrule when-with-user-input-available
+    ?o <- (input ui when $?usrinput)
+    =>
+    (retract ?o)
+    (assert (text-rule 1))
+    ; (printout t "XXXXXXXXXX (assert (input when-value " (nth$ 1 ?usrinput) "))" crlf)
+    (assert (input when-value (nth$ 1 ?usrinput)))
+)
+
 ;Extracts rule that leads to prediction outcome
 (defrule when-value-text
     ?v <- (input when-value ?h)
@@ -70,7 +80,11 @@
     (retract ?w)
     (retract ?t)
     (retract ?v)
+    (printout t "VISUALIZE W: " ?w crlf)
+    (printout t "VISUALIZE T: " ?t crlf)
+    (printout t "VISUALIZE V: " ?v crlf)
     (bind ?url (getSurrogateVisualization))
+    (printout t "VISUALIZE URL: " ?url crlf)
     (assert (ui-state (text "This is a decision tree whose branches are the rules that approximate the model's behaviour. The darker the color of the nodes, the more important was the condition when applying it on sample data.")
                         (image-url ?url)
                         (valid-answers "''")

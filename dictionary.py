@@ -158,6 +158,8 @@ nlp_dictionary = [
         "id": "whatif",
         "key_sentences": [
             "whatif",
+            "What if <key> was <value>?",
+            "What if <key> = <value>?",
             "What if <key> equals <value>?",
             "What happens if <key> equals <value>?",
             "What if you change <key> to <value>?",
@@ -223,7 +225,6 @@ nlp_dictionary = [
             [#9
                 ("root", "root", "what"),
                 ("what", "advcl", "<key>"),
-                ("what", "punct", f"lemma{cd}="),
                 ("what", "appos", "<value>")
             ],
             [#10
@@ -280,10 +281,19 @@ nlp_dictionary = [
                 ([f"lemma{cd}change", f"lemma{cd}set"], "obj", [f"upos{cd}NOUN", f"upos{cd}PROPN"]),
                 ([f"lemma{cd}change", f"lemma{cd}set"], "discourse", f"upos{cd}SYM")
             ],
-            [
+            [#20
                 ("root", "root", [f"lemma{cd}change", f"lemma{cd}set"]),
                 ([f"lemma{cd}change", f"lemma{cd}set"], "obj", [f"upos{cd}NOUN", f"upos{cd}PROPN"]),
                 ([f"lemma{cd}change", f"lemma{cd}set"], ["obj", "obl"], [f"upos{cd}NOUN", f"upos{cd}PROPN"])
+            ],
+            [#21
+                ("root", "root", "<key>"),
+                ("<key>", "nsubj", "what"),
+                ("<key>", "nummod", "<value>")
+            ],
+            [#22
+                ("root", "root", "<value>"),
+                ("<value>", ["csubj", "advcl"], "<key>")
             ]
         ]
     },
@@ -299,7 +309,12 @@ nlp_dictionary = [
             "What if <key> was higher / lower?",
             "Change <key> to greater / less <value>",
             "Change <key> to over / under <value>",
-            "Change <key> to higher / lower <value>"
+            "Change <key> to higher / lower <value>",
+            "What if <key> was different?",
+            "What if <key> was higher?",
+            "What if <key> was lower?",
+            "What if <key> was greater?",
+            "What if <key> was less?"
         ],
         "depparse": [
             [#0
@@ -457,7 +472,7 @@ nlp_dictionary = [
                 ("more", "nsubj", "<key>")
             ],
             [#25
-                ([f"lemma{cd}increase", f"lemma{cd}decrease", "lower", "higher", "greater", "bigger", "smaller"], ["obj", "nsubj:pass", "nsubj"], "<key>")
+                ([f"lemma{cd}change", f"lemma{cd}increase", f"lemma{cd}decrease", "lower", "higher", "greater", "bigger", "smaller", "different"], ["acl", "obj", "nsubj:pass", "nsubj"], "<key>")
             ],
             [#26
                  ("<key>", ["xcomp", "advmod", "amod", "compound"], [f"lemma{cd}increase", f"lemma{cd}decrease", "lower", "higher", "greater", "bigger", "smaller", "more"])
@@ -502,7 +517,7 @@ nlp_dictionary = [
                 ("<outcome>", "nsubj", f"upos{cd}NOUN")
             ],
             [#3
-                ("root", "root", "<outcome>"),
+                ("root", "root", ["<outcome>", f"lemma{cd}predict"]),
                 ("<outcome>", "advmod", "why")
             ],
             [#4
@@ -545,7 +560,7 @@ nlp_dictionary = [
     {
         "id": "how-to",
         "key_sentences": [
-            "how",
+            "how-to",
             "How do I get <outcome>?",
             "What has to change to get <outcome>?"
             "What has to change for <outcome>?"
@@ -830,7 +845,7 @@ nlp_dictionary = [
                 (f"upos{cd}INTJ", ["vocative", "discourse", "advmod"], ["eric", "bot", "there"])
             ],
             [
-                ("root", "root", ["eric", "bot", "there"]),
+                ("root", "root", ["eric", "bot", "there", f"upos{cd}NOUN"]),
                 (["eric", "bot", "there"], "discourse", f"upos{cd}INTJ")
             ],
             [

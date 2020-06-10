@@ -1,6 +1,6 @@
-;why not if prediction not available
+;why not if prediction not available. doesn't care if parameters were passed or not
 (defrule why-not-no-prediction
-    ?w <- (input ui why-not)
+    ?w <- (input ui why-not $?usrinput)
     (list (name predictions) (content nil))
     =>
     (retract ?w)
@@ -23,6 +23,16 @@
                         (clips-type "symbol")
                         (clipboard "''")
                         (fact-type "whynot ")))
+)
+
+;why not if prediction is available and usrinput was passed
+(defrule why-not-usrinput-available
+    ?w <- (input ui why-not $?usrinput)
+    (list (name predictions) (content ?head $?tail))
+    (test(neq nil ?head))
+    =>
+    (retract ?w)
+    (assert (whynot (nth$ 1 ?usrinput)))
 )
 
 ;why not - generates cf

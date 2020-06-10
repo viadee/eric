@@ -6,6 +6,8 @@ testset_plausible_wrong.txt
 data/chat_bak.js
 data/dictionary_bak.py
 data/server_bak.py
+TODO.txt
+presentation_guide.txt
 
 # Byte-compiled / optimized / DLL files
 __pycache__/

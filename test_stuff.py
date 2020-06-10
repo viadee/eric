@@ -76,6 +76,17 @@ def list_to_file(the_list, filename, mode="w", encoding="utf-8"):
     if mode != "a":
         print(f"wrote list to {filename}")
 
+#reads a given eric log and looks for the messages that came from the front end. then writes all of them line by line to a given output file
+def extract_usr_input_from_eric_log(in_file, out_file):
+    all = []
+    lines = get_file_lines(in_file)
+    for l in lines:
+        if "Text message received" in l:
+            index = l.find("{")
+            as_dict = eval(l[index:])
+            all.append(as_dict["answer"])
+    list_to_file(all, out_file)
+
 
 #test sentences should be a list of tuples (function_id_gold, the_sentence)
 def similarity_tester(method, limit, eric, output_file, test_sentences="", comment=["No comment given", "Make sense of it on your own", "Text speaks for itself"]):

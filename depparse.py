@@ -294,12 +294,23 @@ def replace_depparse_placeholders(word_attribute, tuple_attribute, eric):
             ret_tuple_attribute = eric.placeholders["<outcome>"]
     
     elif ret_tuple_attribute == "<key>":
-        if ret_word_attribute in eric.placeholders["<key>"].keys():
+        is_in_placeholders = False
+        for k in eric.placeholders["<key>"].keys():
+            if k.lower() == ret_word_attribute.lower():
+                is_in_placeholders = True
+                break
+        if is_in_placeholders:
             ret_tuple_attribute = ret_word_attribute    
     elif ret_tuple_attribute == "<value>":
-        if ret_word_attribute in eric.placeholders["<key>"].values():
+        is_in_placeholders = False
+        for v in eric.placeholders["<key>"].values():
+            if v:
+                if v.lower() == ret_word_attribute.lower():
+                    is_in_placeholders = True
+                    break
+        if is_in_placeholders:
             ret_tuple_attribute = ret_word_attribute
-
+    #print(f"{word_attribute}/{ret_word_attribute} :: {tuple_attribute}/{ret_tuple_attribute} ::::: {eric.placeholders}")
     #test_stuff.logger(f"DEPREPLACE: {word_attribute} // {ret_word_attribute} ::::: {tuple_attribute} // {ret_tuple_attribute} ::::: {eric.placeholders}")
     return ret_word_attribute, ret_tuple_attribute
 
@@ -561,8 +572,8 @@ def print_depparsed_sentences(sentences, language="en", pipeline=""):
     if isinstance(sentences, str):
         sentences = [sentences]
     output, roots = depparse(sentences, pipeline)
-    for o in output:
-        print(o)
+    for i, o in enumerate(output):
+        print(f"{i}: {o}")
     
 def debug_depparsed_sentences_to_console():
     pipeline = init_stanza("en")
@@ -579,6 +590,9 @@ def debug_depparsed_sentences_to_console():
             continue
         elif usr_in.lower() in ["exit", "exit()", "quit", "quit()", "end", "end()"]:
             break
+
+        # print(eric.make_int(usr_in))
+        # continue
         
         sentence_list.append(usr_in)
         preprocessed = eric.preprocessing(usr_in, "usr_input")

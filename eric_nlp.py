@@ -15,8 +15,8 @@ d = {
             1: "survived"
         },
         "phrasings": {
-          "died": ["die", "dies"],
-          "survived": ["survive", "survives"]
+          "died": ["die", "dies", "dead", "passed away", "perish", "perished", "dying"],
+          "survived": ["survive", "survives", "live", "lives", "alive", "living"]
         },
         "lemmas": {
           "died": "die",
@@ -94,17 +94,19 @@ class Eric_nlp():
     self.deny_id = "none"
     self.deny_threshold = 0.68#0.62 #below this value, eric says, he does not understand the message
     self.depparse_threshold = 0.8 #if the best similarity gets below this value, depparsing is used to increase certainty
-    self.valid_answers = ""
+    self.valid_answers = "" #example: 
+    self.usr_input_traceback = ["User input:"] #store every received message here to trace back and reproduce if an error occurs
     self.normalise_embedding = False
     self.model_columns = d
     self.best_matches = dict()
     self.best_matches_all_methods = dict()
-    self.placeholders = dict()#{'<key>': {'age': '23'}, '<outcome>': 'died'}
+    self.placeholders = dict()#example: {'<key>': {'Age': '23', 'Sex': 'Male'}, '<outcome>': 'died'}
+    self.placeholder_duplicates = [] #saves duplicate entries, e.g. if user writes "what if age is 22 and age is 11": age 22 will be stored in placeholders, age 11 in placeholder_duplicates
     self.search_for_placeholder_values = True #if true, extract_placeholders() will look for model values even if no model name was found in the input
     self.bad_input = True
     self.prioritise_negation = True #if two depparse templates match some input, the negated one is preferred
     self.init_key_sentences()#key: function-id, value: list of strings
-    self.accepted_special_chars = ["=", "<", ">"]
+    self.accepted_special_chars = ["=", "<", ">", "-"]
     self.stop_chars = [x for x in list(string.punctuation) if x != "'" and x not in self.accepted_special_chars]
     self.yes_phrasings = ["yes", "y", "yay", "yas", "ja", "sure", "ok", "okay", "k", "kk", "of course", "go ahead", "continue"]
     self.no_phrasings = ["nay", "no", "n", "nah", "negative", "nope", "never", "stop"]
@@ -135,13 +137,18 @@ class Eric_nlp():
       "please"
     ]
     self.general_replacements = {
-      "’": "'",
+      "n't you": " you not",
       "n't": " not",
+      "’": "'"
     }
     self.model_specific_replacements = {
       "first class": "first pclass",
       "second class": "second pclass",
-      "third class": "third pclass"
+      "third class": "third pclass",
+      " class": " pclass", #if there is no space, "pclass" from input will become "ppclass"
+      "1st": "first",
+      "2nd": "second",
+      "3rd": "third"
     }
     self.preprocessing_methods = {
       "ssc": (True, "Space out accepted_special_chars"), #e.g. makes ">55" become " > 55 "
@@ -152,7 +159,9 @@ class Eric_nlp():
       "rp": (False, "Remove pronouns"),#--> makes the result worse
       "rsw": (True, "Remove stop words"), #words that don't do anything
       "lc": (True, "Lower case"),
-      "plh": (True, "Replace placeholders in key sentences")
+      "plh": (True, "Replace placeholders in key sentences"),
+      "rmi": (True, "Remove multiple inputs"), #removes all but one input pair if user provides multiple (but they get saved in self.placeholders). example: "what if age was 22, relatives 3, pclass first" => "what if age was 22" 
+      "cln": (True, "Reduce decimal points") # reduces too many decimal points. e.g. 'what if age was -44,4.4.5..6?' becomes 'what if age was -44.4456?'
     }
 
   def load_model(self, model_file):
@@ -177,29 +186,30 @@ class Eric_nlp():
     self.original_message = message
 
     preprocessed = self.preprocessing(message, "usr_input")
-    
     match = self.get_function_match(preprocessed)
     #ranking = self.prostprocessing(ranking)
 
 
     return match
   
+
   def is_valid_answer(self, message):
     if self.valid_answers["type"] == "regex":
-      if re.match(self.valid_answers["value"], message):
+      if re.match(f"^{self.valid_answers['value']}$", message):
         print(f"matched '{message}' to '{self.valid_answers['value']}'")
-        return True
+        return message, True
     elif self.valid_answers["type"] == "selection":
-      valid_answers_lower = [x.lower() for x in self.valid_answers["value"]]
-      if message.lower() in valid_answers_lower:
-        print(f"matched '{message}' to '{valid_answers_lower}'")
-        return True
+      for va in self.valid_answers["value"]:
+        if message.lower() == va.lower():
+          print(f"matched '{message}' to '{va}'")
+          return va, True
     else:
       print(f"ERROR: unknown answer type: {self.valid_answers}")
   
     print(f"could not match '{message}' to '{self.valid_answers}'")
-    return False
+    return message, False
 
+  #does not do preprocessing
   def get_function_match(self, sentence):
     if not self.ft:
       print("ERROR: No model loaded for eric_nlp object")
@@ -209,28 +219,35 @@ class Eric_nlp():
     
     #tuple (fct_id, similarity in percent)
     similarity_result = self.get_similarity_result(sentence)
+    similarity_result_similarity = similarity_result[1][0]
+    similarity_result_matched_sentence = similarity_result[1][1]
+    similarity_result_matched_sentence_preprocessed = similarity_result[1][2]
+    print(f"      THRESHOLDS: {self.depparse_threshold} :: {self.deny_threshold}")
+    print(f" PASSED SENTENCE: '{sentence}'")
+    print(f"SIMILARITY CHOSE: {similarity_result}")
 
     result = similarity_result[0]
-    if similarity_result[1] < self.depparse_threshold:
-        prepped_sentence = self.preprocessing(sentence, "usr_input")
-        tree = self.stanza_pipeline(prepped_sentence).sentences[0]
-        depparse_ranking = depparse.get_matching_dictionary_trees(tree, self)
-        try:
-            if len(depparse_ranking) == 0:
-                depparse_result = ("none", [])
-            else:
-                #tuple (fct_id, matching tree template)
-                depparse_result = (depparse_ranking[0][0], depparse_ranking[0][1])
-                result = depparse_result[0]
-        except:
-            print("could not work with depparse ranking:")
-            print(depparse_ranking)
-            quit()
+    if similarity_result_similarity < self.depparse_threshold:
+      tree = self.stanza_pipeline(sentence).sentences[0]
+      depparse_ranking = depparse.get_matching_dictionary_trees(tree, self)
+      try:
+        if len(depparse_ranking) == 0:
+          depparse_result = ("none", [])
+        else:
+          #tuple (fct_id, matching tree template)
+          depparse_result = (depparse_ranking[0][0], depparse_ranking[0][1])
+          result = depparse_result[0]
+        print(f"  DEPPARSE CHOSE: {depparse_result}")
+      except:
+        print("could not work with depparse ranking:")
+        print(depparse_ranking)
+        quit()
     else:
-        depparse_result = ("none", [f"No depparsing necessary; similarity >= depparse_threshold ({similarity_result[1]} >= {self.depparse_threshold})"])
+      print(f"only SIMILARITY: {similarity_result[0]} :: {similarity_result_similarity}")
+      depparse_result = ("none", [f"No depparsing necessary; similarity >= depparse_threshold ({similarity_result_similarity} >= {self.depparse_threshold})"])
 
-    if depparse_result[0] == "none" and similarity_result[1] < self.deny_threshold:
-        result = "none"
+    if depparse_result[0] == "none" and similarity_result_similarity < self.deny_threshold:
+      result = "none"
 
     return result
 
@@ -271,11 +288,11 @@ class Eric_nlp():
         #multiple key sentences per function get compared. only save the best of those
         update_methods = False
         if function_id in self.best_matches.keys():
-            if self.best_matches[function_id] < sim:
-                self.best_matches[function_id] = sim
+            if self.best_matches[function_id][0] < sim:
+                self.best_matches[function_id] = (sim, ks, key_sentence)
                 update_methods = True
         else:
-            self.best_matches[function_id] = sim
+            self.best_matches[function_id] = (sim, ks, key_sentence)
             update_methods = True
 
         if update_methods:
@@ -289,8 +306,9 @@ class Eric_nlp():
           self.best_matches_all_methods[function_id]["sqeuclidean"] = (1.0 - distances["sqeuclidean"]) * 100
 
     
-    top_matches = {key: val for key, val in sorted(self.best_matches.items(), key=lambda item: item[1], reverse=True)}
+    top_matches = {key: val for key, val in sorted(self.best_matches.items(), key=lambda item: item[1][0], reverse=True)}
     top_matches = list(top_matches.items())
+
     
     #return only top <limit> items
     if len(top_matches) == 0:
@@ -299,7 +317,8 @@ class Eric_nlp():
       top_matches = top_matches[0]
     elif limit > 0 and limit < len(top_matches):
       top_matches = top_matches[:limit]
-
+    
+    print(f"TOP MATCHES: {top_matches}")
     return top_matches
 
 
@@ -352,39 +371,107 @@ class Eric_nlp():
   '''
   def preprocessing(self, strng, input_type):
     preprocessed_string = strng.lstrip().rstrip()
-    #print(f"strip: {preprocessed_string}")
+    # print(f"strip: {preprocessed_string}")
     if self.preprocessing_methods["lc"][0]:
       preprocessed_string = preprocessed_string.lower()
-    #print(f"lower: {preprocessed_string}")
+    # print(f"lower: {preprocessed_string}")
     if self.preprocessing_methods["rms"][0]:
       preprocessed_string = self.replace_model_specific_phrasings(preprocessed_string)
-    #print(f"model_specific: {preprocessed_string}")
+    # print(f"model_specific: {preprocessed_string}")
     if self.preprocessing_methods["rcp"][0]:
       preprocessed_string = self.replace_critical_phrasings(preprocessed_string)
-    #print(f"criticals: {preprocessed_string}")
+    # print(f"criticals: {preprocessed_string}")
     if self.preprocessing_methods["rsw"][0]:
       preprocessed_string = self.remove_stop_words(preprocessed_string)
-    #print(f"stopwords: {preprocessed_string}")
+    # print(f"stopwords: {preprocessed_string}")
     if self.preprocessing_methods["rsc"][0]:
       preprocessed_string = self.remove_stop_chars(preprocessed_string)
-    #print(f"stopchars: {preprocessed_string}")
+    # print(f"stopchars: {preprocessed_string}")
     if self.preprocessing_methods["ssc"][0]:
       preprocessed_string = self.space_special_chars(preprocessed_string)
-    #print(f"specialchars: {preprocessed_string}")
+    # print(f"specialchars: {preprocessed_string}")
     if self.preprocessing_methods["rp"][0]:
       preprocessed_string = self.remove_pronouns(preprocessed_string)
-    #print(f"pronouns: {preprocessed_string}")
+    # print(f"pronouns: {preprocessed_string}")
     if self.preprocessing_methods["rnw"][0]:
       preprocessed_string = self.remove_non_semantic_words(preprocessed_string)
-    #print(f"non_semantic: {preprocessed_string}")
+    # print(f"non_semantic: {preprocessed_string}")
 
     if input_type == "usr_input":
+      if self.preprocessing_methods["cln"][0]:
+        preprocessed_string = self.clean_numbers(preprocessed_string)
       self.extract_placeholders(preprocessed_string)
+      print(f"extracted placeholders: {self.placeholders}")
+      print(f"  extracted duplicates: {self.placeholder_duplicates}")
+      if self.preprocessing_methods["rmi"][0]:
+        preprocessed_string = self.remove_multiple_inputs(preprocessed_string)
+        # print(f"remove_multiple_inputs: {preprocessed_string}")
     elif input_type == "key_sentence":
       if self.preprocessing_methods["plh"][0]:
         preprocessed_string = self.replace_placeholders(preprocessed_string)
+
+    
     
     return preprocessed_string.lstrip().rstrip()
+
+  def backwards_replace(self, strng, old, new, count=1):
+    #print(f"looking for {old} in {strng}")
+    ret_val = strng.rsplit(old, count)
+    return new.join(ret_val)
+
+  def remove_multiple_inputs(self, strng):
+    #print(f"removing: {self.placeholders}")
+    #print(f"     and: {self.placeholder_duplicates}")
+    ret_val = strng.split()
+    first = True
+    #skip the first, to keep one
+    for k, v in self.placeholders["<key>"].items():
+      if first:
+        first = False
+      else:
+        #print(f"removing '{k.lower()}' and '{v.lower()}' from {ret_val}")
+        if k.lower() in ret_val:
+          ret_val.remove(k.lower())
+        if v:#could be None
+          if v.lower() in ret_val:
+            ret_val.remove(v.lower())
+
+    ret_val = " ".join(ret_val)
+
+    for duplicate in self.placeholder_duplicates:
+      #print(f"D_removing '{duplicate.lower()}' from '{ret_val}'")
+      ret_val = self.backwards_replace(ret_val, duplicate.lower(), "")
+
+    #if you remove inputs, you have to remove trailing "and"s
+    ret_val = self.remove_trailings(ret_val, "and")
+    
+    return ret_val
+
+  def remove_trailings(self, sentence, word, case_sensitive=False):
+    words = []
+    trail = True #becomes false when first trailing word not equal to <word> is found
+    reversed = sentence.split()
+    reversed.reverse()
+    for w in reversed:
+      if case_sensitive:
+        if w == word:
+          if not trail:
+            words.append(w)
+        else:
+          words.append(w)
+          trail = False
+      else:
+        if w.lower() == word.lower():
+          if not trail:
+            words.append(w)
+        else:
+          words.append(w)
+          trail = False
+
+    words.reverse()
+    return " ".join(words)
+
+
 
   def replace_model_specific_phrasings(self, strng):
     ret_val = replace_words(strng, self.model_specific_replacements)
@@ -431,11 +518,101 @@ class Eric_nlp():
     ret_val = " ".join(ret_words)
     return ret_val
 
-  #remove certain chars that would cause problems or have no use (e.g. punctuation)
-  def remove_stop_chars(self, strng):
-    ret_val = remove_chars(strng, self.stop_chars)
+
+  '''
+  expands clips message with parameters from self.placeholders if suitable. example: "whatif" -> "whatif Age 22 Embarked Cherbourg"
+  returns message unmodified if no suitable parameters were found
+  
+  functions that use parameters:
+    outcome parameters:
+      when
+      how-to
+      why-not
+    key parameters:
+      whatif-gl
+    key-value parameters:
+      whatif
+  '''
+  def expand_with_parameters(self, message):
+    need_outcome = ["when", "how-to", "why-not"]
+    need_key = ["whatif-gl"]
+    need_key_value = ["whatif"]
+    ret_val = message
+    # OUTCOME
+    if message in need_outcome:
+      if self.placeholders["<outcome>"]:
+        o = self.placeholders["<outcome>"]
+        if o not in self.model_columns["class"]["values"].values():
+          for k, v in self.model_columns["class"]["phrasings"].items():
+            if o in v:
+              o = k
+              break        
+        #print(f" expanding with ' {o}'")
+        ret_val += f" {o}"
+
+    # KEY ---- this adds multiple keys if more than one entry is present
+    elif message in need_key:
+      for k in self.placeholders["<key>"].keys():
+        if k:
+          #print(f" expanding with ' {k}'")
+          ret_val += f" {k}"
+
+    # KEY-VALUE-PAIRS
+    elif message in need_key_value:
+      for k, v in self.placeholders["<key>"].items():
+        if v:#can be None
+          v_prepared = self.make_int(v) if self.model_columns[k]["data-type"] == "integer" else v
+          expand = f" {k} {v_prepared}"
+          #print(f" expanding with '{expand}'")
+          ret_val = f"{ret_val}{expand}"
+
     return ret_val
 
+  
+  #remove certain chars that would cause problems or have no use (e.g. punctuation)
+  def remove_stop_chars(self, strng):
+    #handle decimal comma/point separately
+    puncts = [",", "."]
+    stopper = [x for x in self.stop_chars if x not in puncts]
+    pre_ret_val = remove_chars(strng, stopper)
+
+    ret_val = ""
+    for i, prv in enumerate(pre_ret_val):
+      if prv in puncts:
+        next_char = pre_ret_val[i+1] if i+1 < len(pre_ret_val) else ""
+        prev_char = pre_ret_val[i-1] if i > 0 else ""
+        #in case of two adjacent puncts: replace the first with a 1 but do not copy anything to ret_val.
+        #that way, the last of multiple adjacent puncts can be safely copied if it is followed by a number.
+        #and by replacing a punct with "1" you ensure the integrity of the indexes
+        if next_char in puncts:
+          tmp = list(pre_ret_val)
+          tmp[i] = "1"
+          pre_ret_val = "".join(tmp)
+        elif next_char.isdigit() and prev_char.isdigit():
+          ret_val += prv
+        else:
+          ret_val += " "
+      else:
+        ret_val += prv
+
+    # print(f"ORIGINAL: '{strng}'")
+    # print(f" CLEANED: '{ret_val}'")
+    return ret_val
+
+  def make_int(self, value_as_str):
+    if not value_as_str:#if None
+      return ""
+    delimiters = [",", "."]
+    ret_val = value_as_str
+    for deli in delimiters:
+      index = ret_val.find(deli)
+      if index > 0:
+        ret_val = ret_val[:index]
+      elif index == 0:
+        ret_val = "0"
+      
+    return ret_val
+      
   #remove certain words that would otherwise infer with the process but have no real use here (e.g. "please")
   def remove_stop_words(self, strng):
     ret_val = self.remove_words_from_string(strng, self.stop_words)
@@ -493,55 +670,12 @@ class Eric_nlp():
         #print(f"different indices: returning '{tmp_string}' instead of '{ret_val}'")
         ret_val = strng
 
-    return ret_val
+    if self.preprocessing_methods["lc"][0]:
+      return ret_val.lower()
+    else:
+      return ret_val
 
-  #preprocess message (e.g. remove punctuation, all lower case)
-  def preprocess_input(self, strng):
-    preprocessed_string = remove_chars(strng, self.stop_chars)
-    return preprocessed_string.lower()
-
-  #preprocess the string to compare with (e.g. remove punctuation, all lower case, replace placeholders with values from the input)
-  def preprocess_key_sentence(self, compare_strng):
-    tmp_stop_chars = [x for x in self.stop_chars if x not in ["<", ">"]]
-    preprocessed_string = remove_chars(compare_strng, tmp_stop_chars).lower()
-    #list of tupels (model_column, column_value)
-    keys_values = list(self.placeholders["<key>"].items())
-
-    #if replacements are saved, use them
-    if self.placeholders["<outcome>"] is not None:
-      outcome = self.placeholders["<outcome>"]
-      #print(f"replacing <outcome> with {outcome}")
-      preprocessed_string = preprocessed_string.replace("<outcome>", outcome, 1)
-    if self.placeholders["<key>"]:
-      #go through string and replace keys and values. always replace only one occurence and increase index
-      max_index = len(keys_values)
-      key_index = 0
-      value_index = 0
-      tmp_string = preprocessed_string
-      for word in tmp_string.split():
-        if word == "<key>" and key_index < max_index:
-          replacement = keys_values[key_index][0]
-          #if corresponding value is None, skip value
-          if keys_values[key_index][1] is None:
-            value_index += 1
-          key_index += 1
-          #print(f"replacing <key> with {replacement}")
-          preprocessed_string = preprocessed_string.replace("<key>", replacement, 1)
-        elif word == "<value>" and value_index < max_index:
-          replacement = keys_values[value_index][1]
-          value_index += 1
-          #print(f"replacing <value> with {replacement}")
-          if replacement:
-            preprocessed_string = preprocessed_string.replace("<value>", replacement, 1)
-      #if to every key there wasn't always a value to be replaced, return the original sentence.
-      #that occures for example with "what if age was greater/lesser" and we shouldn't give that key_sentence
-      #an extra word (here "age") to match with the input
-      if key_index != value_index:
-        print(f"different indices: returning '{tmp_string}' instead of '{preprocessed_string}'")
-        preprocessed_string = compare_strng
-
-    return preprocessed_string
-
+ 
   '''
   go through string word by and see if you can find replacements for placeholders
   return None but saves everything in object's attribute self.placeholders
@@ -553,6 +687,7 @@ class Eric_nlp():
   '''
   def extract_placeholders(self, strng):
     self.placeholders = {"<key>": dict(), "<outcome>": None, "<subject>": None}
+    self.placeholder_duplicates = []
     words = strng.split()
     used_words = [] #list of indexes of used words
     '''
@@ -572,7 +707,14 @@ class Eric_nlp():
         used_words.append(index)
       elif word != "class" and word.capitalize() in self.model_columns.keys():
         value, value_index = self.extract_value(word.capitalize(), words[index+1:])
-        self.placeholders["<key>"][word] = value
+        #if not value:
+          #print(f"WARNING: could not find value for '{word}' in: {strng}")
+        if word.capitalize() in self.placeholders["<key>"].keys():
+          self.placeholder_duplicates.append(word.capitalize())
+          if value:
+            self.placeholder_duplicates.append(value)
+        else:
+          self.placeholders["<key>"][word.capitalize()] = value
         used_words.append(value_index+index+1)
       else:
         for v in self.model_columns["class"]["phrasings"].values():
@@ -589,7 +731,7 @@ class Eric_nlp():
           value, value_index = self.extract_value(model_column, words)
           if value:
             if value_index not in used_words:
-              self.placeholders["<key>"][model_column.lower()] = value
+              self.placeholders["<key>"][model_column] = value
               used_words.append(value_index)
 
     #print(f"extracted placeholders: {self.placeholders}       {strng}    {used_words}")
@@ -599,10 +741,11 @@ class Eric_nlp():
   def extract_value(self, key, word_list):
     #categorical values
     if self.model_columns[key]["feature-type"] == "categorical":
-      possible_values = [x.lower() for x in self.model_columns[key]["values"].values()]
+      possible_values = [x for x in self.model_columns[key]["values"].values()]
       for w, index in zip(word_list, range(len(word_list))):
-        if w in possible_values:
-          return w, index
+        for pv in possible_values:
+          if w == pv.lower():
+            return pv, index
     #continuous values
     elif self.model_columns[key]["feature-type"] == "continuous":
       #min = self.model_columns[key]["values"]["min"]
@@ -617,6 +760,43 @@ class Eric_nlp():
           pass
     return None, -1
 
+  #takes a sentence as string and cleans decimal points for every word. e.g. words like "3,5.21,6,8" become "3.52168" or ".33" becomes "0.33"
+  def clean_numbers(self, strng):
+    ret_val = []
+    for w in strng.split():
+      word = self.reduce_decimal_points(w)
+      ret_val.append(word)
+    
+    ret_val = " ".join(ret_val)
+    print(f"REDUCED DECIMAL: '{strng}' -> '{ret_val}'")
+    return ret_val
+
+
+  #takes one word of a sentence as a string
+  #changes all "," to ".", then strips all but the first of those, so a float with only one decimal point (or an integer if no , or . was present) is yielded
+  #digits between the redundant "." become decimal places
+  #returns the clean float or integer as string or the word as it was passed to the function if string wasn't a number
+  def reduce_decimal_points(self, word):
+    word_modified = word.replace(",", ".")
+    ret_val = ""
+    first = True
+    for w in word_modified:
+      if w == ".":
+        if first:
+          ret_val += w
+          first = False
+      else:
+        ret_val += w
+
+    if ret_val:
+      if ret_val[0] == ".":
+        ret_val = f"0{ret_val}"
+      elif ret_val[-1] == ".":
+        ret_val = ret_val[:-1]
+    else:
+      ret_val = word
+
+    return ret_val
 
   #return vector representation of sentence (for now only fasttext is used)
   def get_sentence_vector(self, msg):
@@ -639,8 +819,7 @@ class Eric_nlp():
         #asdf = remove_chars(key_sentence, tmp_stop_chars).lower()
         key_sentence = self.preprocessing(ks, "key_sentence")
         if ks.find("<subject>") > -1:
-          print(f"keysent: {ks}")
-          print(f"prepped: {key_sentence}")
+          print(f"replace <subject>: '{ks}' :::::  '{key_sentence}'")
 
         #if asdf != key_sentence:
           #print(f"( old / new ): ( '{asdf}' / '{key_sentence}' )")

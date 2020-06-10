@@ -33,7 +33,7 @@ class ruleEnvironment:
         self.set_of_functions = dictionary
 
         
-        #NLP components        
+        #NLP components
         self.nlp_model_file = "data\\wiki.en.bin"
         self.nlp = eric_nlp.Eric_nlp()
         self.nlp.load_model(self.nlp_model_file)
@@ -187,34 +187,57 @@ class ruleEnvironment:
         print("fact type: " + self.fact_type)
         print("clips type: " + self.clips_type)
 
+        message_no_punctuation = self.nlp.remove_stop_chars(message)
         if not self.fact_type == 'skip':
-            #yes/no phrasings
-            if message.lower() in self.nlp.yes_phrasings:
-                message = "yes"
-            elif message.lower() in self.nlp.no_phrasings:
-                message = "no"
+            #yes/no phrasings. check for whole message and for first word. sometimes people write "yes" or "no" and directly write something else            
+            print(f"SPLIT: {message_no_punctuation.split()}")
+            if message_no_punctuation.split():
+                if message_no_punctuation.lower() in self.nlp.yes_phrasings:
+                    message = "yes"
+                elif message_no_punctuation.split()[0].lower() in self.nlp.yes_phrasings:
+                    message = "yes"
+                elif message_no_punctuation.lower() in self.nlp.no_phrasings:
+                    message = "no"
+                elif message_no_punctuation.split()[0].lower() in self.nlp.no_phrasings:
+                    message = "no"
             
-            #is a specific answer expected?
-            if self.nlp.valid_answers:
-                #answers stored from function query?
-                #if: currently problematic because for every answer, message_from_clips will be triggered again
+            invalid_answer = False
+            if message_no_punctuation.split():
+                #is a specific answer expected?
+                if self.nlp.valid_answers:
+                    message = self.nlp.preprocessing(message, "usr_input")
+                    #check if current input is a valid answer
+                    message, is_valid = self.nlp.is_valid_answer(message)
+                    if not is_valid:
+                        invalid_answer = True
+                    
+                    
+                #function selection expected
+                else:
+                    message = self.nlp.map_to_eric_function(message)
+                    print(f"NLP-message: {message}")
 
-                #check if current input is a valid answer
-                if not self.nlp.is_valid_answer(message):
+                    message = self.nlp.expand_with_parameters(message)
+                    print(f"expanded message: '{message}'")
+            else:
+                invalid_answer = True
+
+
+            if invalid_answer:
                     ret_message = {'type':'message', 'text': 'I cannot use this input here', 'image': "", 'valid-answers': f"{self.nlp.valid_answers}", 'clipboard': ""}
                     MyServerProtocol.broadcast_message(ret_message)
                     return
-            #function selection expected
-            else:
-                message = self.nlp.map_to_eric_function(message)                
     
         if(self.fact_type == 'skip'):
-            self.env.assert_string('(' + message + ')')
+            ass = '(' + message + ')'
         else:
             if self.clips_type == 'string':
-                self.env.assert_string('(' + self.fact_type + ' "' + message + '")')
+                ass = '(' + self.fact_type + ' "' + message + '")'
             else:
-                self.env.assert_string('(' + self.fact_type + ' ' + message + ')')
+                ass = '(' + self.fact_type + ' ' + message + ')'
+        print(f"asserting input: {ass}")
+        self.env.assert_string(ass)
+        
         self.env.run()
 
 #Server infrastructure

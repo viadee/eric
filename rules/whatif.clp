@@ -6,6 +6,7 @@
     ?l <- (list (name predictions) (content $?c))
     (test(member$ nil ?c))
     =>
+    ; (printout t "FIRED: " "whatif-no-data" crlf)
     (retract ?o)
     (assert(input ui require))
     (assert(input ui calc-predict))
@@ -19,13 +20,54 @@
     ?l <- (list (name predictions) (content $?c))
     (test(not(member$ nil ?c)))
     =>
+    ; (printout t "FIRED: " "whatif-data-available" crlf)
     (retract ?o)
     (bind ?features-first (fact-slot-value (nth$ 1 ?c) features))
-    (loop-for-count (?cnt 1 (length$ ?features-first)) do 
+    (loop-for-count (?cnt 1 (length$ ?features-first)) do
         (assert(input user-value (fact-slot-value (nth$ ?cnt ?features-first) name) (fact-slot-value (nth$ ?cnt ?features-first) value) ))
     )
     (assert(input ui select))
 )
+
+;what if in case user provided parameters but there are no prediction values in prediction list
+;Condition: whatif command with parameters + no prediction in prediction list
+;Result: predict is fired which will ask user to provide data first
+(defrule whatif-usr-input-available-no-data
+    ?o <- (input ui whatif $?usrinput)
+    ?l <- (list (name predictions) (content $?c))
+    (test(member$ nil ?c))
+    (test(not(member$ nil ?usrinput)))
+    =>
+    ; (printout t "FIRED: " "whatif-data-available" crlf)
+    (retract ?o)
+    (assert(input ui predict))
+)
+
+;what if in case there is a prediction in list and user provided parameters. Will simulate user input of feature values equal to the last prediction. Values are then later exchanged.
+;Condition: whatif command with parameters + a prediction in prediction list
+;Result: Simulating user input over all feature values of the latest prediction + switch to select
+(defrule whatif-usr-input-available
+    ?o <- (input ui whatif $?usrinput)
+    ?l <- (list (name predictions) (content $?c))
+    (test(not(member$ nil ?c)))
+    (test(not(member$ nil ?usrinput)))
+    =>
+    ; (printout t "FIRED: " "whatif-data-available" crlf)
+    (retract ?o)
+    (bind ?features-first (fact-slot-value (nth$ 1 ?c) features))
+    (loop-for-count (?cnt 1 (/ (length$ ?usrinput) 2)) do 
+        (bind ?usrkey (nth$ (- (* ?cnt 2) 1) ?usrinput))
+        (bind ?usrval (nth$ (* ?cnt 2) ?usrinput))
+        (printout t "asserting (" ?cnt "/" (/ (length$ ?usrinput) 2) "): input user-value " ?usrkey " " ?usrval)
+        (assert(input user-value ?usrkey ?usrval))
+        (printout t " was asserted" crlf)
+    )
+    (loop-for-count (?cnt 1 (length$ ?features-first)) do
+        (assert(input user-value (fact-slot-value (nth$ ?cnt ?features-first) name) (fact-slot-value (nth$ ?cnt ?features-first) value) ))
+    )
+    (assert(input whatif anymore))
+)
+
 
 ;Asks to select a feature to change
 ;Condition: select command
@@ -35,6 +77,7 @@
     (declare (salience ?*low-priority*))
     ?o <- (input ui select)
     =>
+    ; (printout t "FIRED: " "whatif-data-available" crlf)
     (retract ?o)
     (assert(input whatif anymore))
     (assert (ui-state (text "I need you to select a feature:")
@@ -52,6 +95,7 @@
     ;(declare (salience ?*medium-low-priority*))
     ?a <- (input whatif anymore)
     =>
+    ; (printout t "FIRED: " "whatif-data-available" crlf)
     (retract ?a)
     (assert (ui-state (text "Any more?")
                         (valid-answers "{'type' : 'selection', 'value' : ['yes', 'no']}")
@@ -66,6 +110,7 @@
 (defrule whatif-values-ask-yes
     ?a <- (input whatif-asked yes)
     =>
+    ; (printout t "FIRED: " "whatif-data-available" crlf)
     (retract ?a)
     (assert(input ui select))
 )
@@ -77,6 +122,7 @@
     ?a <- (input whatif-asked no)
     ;?o <- (input ui whatif)
     =>
+    ; (printout t "FIRED: " "whatif-data-available" crlf)
     (retract ?a)
     (assert(input ui calc-predict))
     ;(retract ?o)

@@ -1,6 +1,6 @@
-;how-to ask if no prediction
+;how-to ask if no prediction, don't care if user parameters were passed or not
 (defrule how-to-no-prediction
-    ?o <- (input ui how-to)
+    ?o <- (input ui how-to $?usrinput)
     (list (name predictions) (content nil))
     =>
     (retract ?o)
@@ -23,6 +23,16 @@
                         (clips-type "symbol")
                         (clipboard "''")
                         (fact-type "input how-to-value ")))
+)
+
+;how-to ask for foil if parameters were passed
+(defrule how-to-usrinput-available
+    ?o <- (input ui how-to $?usrinput)
+    (list (name predictions) (content ?head $?tail))
+    (test(neq nil ?head))
+    =>
+    (retract ?o)
+    (assert (input how-to-value (nth$ 1 ?usrinput)))
 )
 
 ;creates a counterfactual; if not found: apologize

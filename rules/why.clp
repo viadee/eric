@@ -3,6 +3,7 @@
     ?w <- (input ui why)
     (list (name predictions) (content nil))
     =>
+    (printout t "FIRED: " "why-no-prediction" crlf)
     (retract ?w)
     (assert (ui-state (text "Why what? You should make a prediction first. Type 'prediction' into the message field.")
                         (valid-answers "''")
@@ -19,6 +20,7 @@
     (not(exists(start why ?x)))
     (preference explanation ?first $?other)
     =>
+    (printout t "FIRED: " "why-prediction-available" crlf)
     (retract ?w)
     (assert(input ui why-calc))
     (assert(start why ?first))
@@ -32,6 +34,7 @@
     (preference explanation rule $?other)
     (test(neq nil ?head))
     =>
+    (printout t "FIRED: " "why-rule" crlf)
     (retract ?w)
     (bind ?f (fact-slot-value ?head features))
     (bind ?prediction-values (transform-feature-values ?f))
@@ -62,6 +65,7 @@
     (preference explanation attribution $?other)
     (test(neq nil ?head))
     => 
+    (printout t "FIRED: " "why-attribution" crlf)
     (retract ?w)
     (bind ?f (fact-slot-value ?head features))
     (bind ?prediction-values (transform-feature-values ?f))
@@ -85,6 +89,7 @@
     (test(neq nil ?head))
     (foil ?first-foil $?other-foils)
     =>
+    (printout t "FIRED: " "why-counterfactual" crlf)
     (retract ?w)
     (bind ?f (fact-slot-value ?head features))
     (bind ?p (fact-slot-value ?head prediction-outcome))
@@ -118,6 +123,7 @@
 (defrule why-feedback
     ?f <- (input ui feedback)
     =>
+    (printout t "FIRED: " "why-feedback" crlf)
     (retract ?f)
     (assert (ui-state (text (str-cat "If you haven't enough yet, I can generate another explanation for you. Shall I?") (str-cat "Do you want to see another explanation?") (str-cat "Shall I try a different explanation approach?"))
                         (valid-answers "{'type' : 'selection', 'value' : ['yes', 'no']}")
@@ -131,6 +137,7 @@
     ?y <- (input feedback-ask no)
     ?s <- (start why ?x)
     => 
+    (printout t "FIRED: " "why-feedback-no" crlf)
     (retract ?y)
     (retract ?s)
     (assert (ui-state (text (str-cat "All right &#128522;.") (str-cat "Okay &#128522;."))
@@ -146,6 +153,7 @@
     ?p1 <- (preference explanation ?z1 nil)
     ?s <- (start why ?x)
     => 
+    (printout t "FIRED: " "why-feedback-yes-more-pref" crlf)
     (retract ?y)
     (retract ?s)
     (assert (ui-state (text (str-cat "Sorry, there is nothing more I can offer you. Maybe you can enter another question.") (str-cat "There is nothing more for the moment. Try another question."))
@@ -162,6 +170,7 @@
     ?s <- (start why ?x)
     (test(eq ?x ?z2))
     => 
+    (printout t "FIRED: " "why-feedback-loop-finished" crlf)
     (retract ?y)
     (retract ?s)
     (assert (ui-state (text (str-cat "Sorry, there is nothing more I can offer you. Maybe you can enter a different question.") (str-cat "There is nothing more for the moment. Try a different question."))
@@ -178,6 +187,7 @@
     ?s <- (start why ?x)
     (test(neq ?x ?z2))
     => 
+    (printout t "FIRED: " "why-feedback-alter-pred" crlf)
     (retract ?y)
     (retract ?p1)
     (assert(preference explanation ?z2 ?other ?z1))

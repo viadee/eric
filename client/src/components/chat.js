@@ -44,8 +44,12 @@ class Chat extends React.Component{
         
     }
 
+    escapeRegex(s) {
+        return s.replace(/[-\/\\^$*+?.()|[\]{}]/g, '\\$&');
+    }
+
     matchDictionary = (input) => {
-        var patt = new RegExp(this.state.chat_message, 'i');
+        var patt = new RegExp(this.escapeRegex(this.state.chat_message), 'i');
         let d = this.state.dictionary.filter(entry => patt.test(entry.keywords));
         this.setState({
             filtered_dictionary: d,
