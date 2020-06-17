@@ -7,6 +7,7 @@ ERIC is an acronym for "Explainable AI through Rule-based Interactive Conversati
 Read more about it in this [article](http://ceur-ws.org/Vol-2578/ETMLP3.pdf).
 
 Or, see ERIC in action here: 
+
 [![ETMLP Presentation](http://img.youtube.com/vi/C3bsM33oBtY/0.jpg)](http://www.youtube.com/watch?v=C3bsM33oBtY "ETMLP Presentation: ERIC")
 
 ## ERIC Extensions
