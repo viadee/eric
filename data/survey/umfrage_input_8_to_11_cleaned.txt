@@ -1,0 +1,94 @@
+#typos have been corrected (e.g. "predict the weathet" -> "predict the weather")
+
+[predict]
+Can you predict an outcome from the current information?
+
+#arguable if intended or joke but feasible that ERIC would answer with a predict
+Can you predict the weather tommorow?
+Can you predict the outcome for a 60 year-old?
+Can you predict my chances of survival?
+
+[whatif]
+What if my Age was 25?
+What if I had no relatives?
+What if the passenger was female?
+How would the outcome change if they had boarded at Queenstown?
+
+#not a valid value but should trigger "whatif" nonetheless
+What if I were to embark in Portsmouth?
+
+[whatif-gl]
+What if I was older?
+What if I had more relatives?
+What if they were older?
+What if their fare was more expensive?
+What if the Ticket was more expensive?
+
+[why]
+Why would I die?
+Why would they survive?
+Why do you think they would die?
+Why did the person live?
+Why did I get the outcome "died"?
+
+[why-not]
+Why not...
+Why wouldn't I survive?
+Why wouldn't they survive?
+Why did that person not survive?
+
+[how-to]
+How could I have survived?
+What could I do to survive?
+How could they have survived?
+
+[when]
+When would I survive?
+When would someone survive?
+
+[certainty]
+How certain is my demise?
+Are you sure?
+How sure are you about the result?
+How certain is your prediction?
+
+[featureNames]
+What do you use to input data?
+What should I write as input?
+What features do you use for your prediction?"
+Show me your input values.
+
+[preview]
+Can you show the preview the data?
+Please show me a data sample.
+Please preview the data.
+Can you show me a data sample?
+Give me a preview of your data.
+
+[targetvalues]
+What will be the result?
+What's the result?
+What will the result be?
+What is the expected result?
+
+[init]
+Hello, sexy!
+Initiate Dialogue.
+Hello.
+Hi.
+Hello!
+Hi!
+Hello ERIC.
+
+
+#stuff that was obviously meant to not be understood. Or stuff that might have been a serious question but does not get answered by any of ERIC's functions
+[none]
+When will it have a nice weather?
+How will I know if it is better to travel on August?
+What if you travel on August instead of July?
+What if the weather on July ist better than August?
+Why did you choose August?
+Why did not you choose July?
+How does any of this work? Cause I don't understand
+What value do I need to put?
+What if you change the title to Mr.?

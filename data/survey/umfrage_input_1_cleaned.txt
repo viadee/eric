@@ -1,0 +1,52 @@
+[predict]
+What would happen to them?
+Predict the outcome.
+How can I find out if they would have died?
+
+[whatif]
+What would happen if they were in first pclass instead?
+What would happen if they were in first class instead?
+What if they were female?
+
+[whatif-gl]
+What if their fare was lower than 300 instead?
+What if their age was over 50?
+#moved to whatif-gl because it didn't make sense in why
+Why wouldn’t they have more relatives?
+#moved to whatif-gl because it doesn't make sense per se but it's the closest match I think would be reasonable
+When will the age be lower than 30?
+
+[why]
+Why is it likely that they would have died?
+
+
+[why-not]
+
+[how-to]
+
+[when]
+When is it likely that they die?
+
+[certainty]
+How likely is it that they die?
+
+[featureNames]
+What features are used for the prediction?
+
+[preview]
+Show me the training data.
+Give me a preview of the training data.
+
+[targetvalues]
+What outcomes exist?
+What are the outcomes?
+
+[init]
+Hello ERIC.
+Let’s start ERIC.
+
+[none]
+Why would they be female?
+Why would they not embark from Queenstown?
+How to change the age?
+With what certainty is it expected that they are male?

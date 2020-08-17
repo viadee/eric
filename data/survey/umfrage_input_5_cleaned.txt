@@ -1,0 +1,36 @@
+[why]
+Why does X survive if he had 5 relatives?
+
+[why-not]
+Why didn't X die when his fare cost was only $5 ? 
+
+[how-to]
+What characteristic does X have to have to survive the Titanic tragedy?
+
+[when]
+
+[certainty]
+What are the chances to survive with these properties?
+How are the chances X would survive?
+
+[predict]
+
+[whatif]
+What if X was a female, 26 years of age?
+
+[whatif-gl]
+How many relatives do i need to have the highest chance to survive the sinking?
+What if X's ticket cost between $750 and $5000?
+
+[featureNames]
+How do you work out all these predictions?
+
+[preview]
+Show me how you do things
+
+[init]
+Hey Eric!
+
+[none]
+#not a function of the chatbot
+How is this supposed to work?

@@ -1,0 +1,186 @@
+[whatif]
+set x = y
+set key = value
+set feature = x
+change x to y
+what would happen if they were in first pclass instead
+what happens if the passengers pclass is second
+set sex to female
+embarked = queenstown
+set fare to 223
+change embarked cherbourg
+what would happen if age was 22
+set sex = male
+set embarked to queenstown
+change sex female
+what would happen if relatives = 22
+set sex male
+what if age=33
+change age to 66
+set age 66
+what happens if embarked = queenstown
+what would happen if embarked was queenstown
+what if embarked=queenstown
+change age 66
+what would happen if relatives was 22
+what would happen if age = 22
+change embarked to london
+sex = female
+what would happen if embarked = queenstown
+change sex to male
+what happens if age=44
+what would happen if relatives 22
+what happens if sex=female
+set age = 66
+set a = b
+set embarked queenstown
+
+[whatif-gl]
+does the outcome differ with a lower number of relatives
+set x to higher
+how does the outcome change with a bigger number for relatives
+predict for increased number
+how does the outcome change with a decreased number for relatives
+set age lower 55
+predict for higher
+predict x for lower
+what if their fare was more than 300 instead
+predict x for higher
+what happens if the fare is greater
+how does the outcome change with a smaller number for relatives
+what if their fare was higher than 300 instead
+what if their fare was less than 300 instead
+change x to higher
+how does the outcome differ with a lower value for relatives
+what if their fare was greater than 300 instead
+predict x for higher value
+set age under 55
+set x to higher value
+make age higher
+set x to higher lower
+change x to lower
+change x to higher lower
+predict x for decreased increased value
+change age higher 55
+what would happen if the fare was increased
+predict x for decreased number
+what if Fare is changed to higher lower value
+make age higher 55
+makge age lower
+make age less
+set age over 55
+predict x for decreased value
+set age > 55
+predict x for lower value
+predict for decreased values
+predict x for increased number
+predict x for increased value
+predict for lower values
+change age higher
+predict x for higher lower
+can you change x to higher lower value
+set age greater 55
+predict outcome for higher
+make age lower
+what if x is set to increased value
+does the outcome differ with a lower number for relatives
+what if their fare was lower than 300 instead
+how does the outcome change with a lower number of relatives
+how does the outcome change for a lower number of relatives
+predict for increased values
+predict for increased numbers
+set age higher 55
+what if x is changed to higher value
+how does the outcome change if age is less than 44
+how does the outcome change if age is more than 44
+how does the outcome change if age is below 44
+how does the outcome change if age is over 44
+how does the outcome change if age is higher than 44
+how does the result change when age is greater than 44
+how does the result differ when age is greater than 44
+how does the result differ when age is higher than 44
+increase age
+increase fare
+increase relatives
+increase number of relatives
+what if fare is increased
+lower age
+greater relatives
+higher fare
+age lower
+fare lower
+increase number of relatives
+fare lower
+relatives lower
+increase age
+how does the outcome change by a lower number of relatives
+higher fare
+lower age
+increase fare
+greater relatives
+more relatives
+relatives higher
+relatives higher
+
+[when]
+when will a person survive 
+when does a person survive
+when is a person died  
+what features do i need for died
+
+
+[why]
+why do you predict the instance as died?
+why do you predict died?
+why do you predict the instance as died
+why did you predict the outcome
+why do you predict died
+why did you predict this outcome
+why did this person died
+
+[why-not]
+why is n't the predicted outcome died
+why is n't the instance 's predicted value survived
+why didn't x die
+why did n't this person die
+why did n't x die
+why isn't the predicted outcome died
+why did n't the person survive
+
+[targetvalues]
+what are possible predictions
+what will the outcomes be
+what can be the outcomes
+what are the possible predictions
+which can be the outcomes
+which are the outcomes
+which can be the outcome
+what can the outcomes be
+
+[how-to]
+what has to be changed to get a died survived person
+what has to be changed to get a died person
+what do i have to change to get a died person
+what has to be changed to get a died result
+what has to be changed to get a died outcome
+what has to be adjusted to get a died person
+what has to be different to get a died person
+what has to be modified to get a died person
+Which factors do I need so that they die?
+Which conditions have to be fulfilled so that they survive?
+
+[featureNames]
+what basis for outcome
+what is the base of the prediction
+what is the basis for the outcome
+what is the input for that
+what is the input for the prediction
+what input for result
+what features do you use for the prediction
+what is the basis for the prediction
+what is the basis of the prediction
+what is the base for the prediction
+what are the names of the features
+
+[none]
+how does the result differ by age higher than 44

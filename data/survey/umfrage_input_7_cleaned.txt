@@ -1,0 +1,45 @@
+[why]
+
+[why-not]
+
+[how-to]
+What do I have to enter to die
+What do I have to enter to survive
+
+[when]
+Which parameter lead to survived
+Which parameter lead to died
+
+[certainty]
+Are you sure?
+Is it save that x happens?
+
+[predict]
+Tell me what happens
+
+[whatif]
+
+[whatif-gl]
+What happens to a person older than 50
+What happens to a person younger than 30
+
+[featureNames]
+Which parameter did you use
+
+[preview]
+What kind of data did you use to know
+
+[targetvalues]
+What could happen
+What else could happen
+
+[init]
+Hi
+whats up
+Hey
+Listen
+
+[none]
+Change the
+How comes it that x is not
+How comes it that

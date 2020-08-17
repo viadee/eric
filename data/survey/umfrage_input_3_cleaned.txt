@@ -1,0 +1,61 @@
+[predict]
+Please predict!
+predict!
+Make a prediction
+
+[whatif]
+What if the age were 55
+What if the age was 55
+What if the age is 55
+What if I change the age to 55
+What if age 55
+Set age to 55
+
+[whatif-gl]
+What if the age was lower than 55?
+What if age < 55
+set age >55
+
+[why]
+Why did patient XX survive?
+Why?
+Please explain the result
+Explanation
+Why do you think that?
+
+
+[why-not]
+Why did XX not die?
+
+[how-to]
+What has to change that XX dies? 
+
+[when]
+When do male people survive?
+When does XX die?
+
+[certainty]
+How certain is that?
+
+[featureNames]
+What are the prediction metrics?
+What are the most important features?
+Which features?
+
+[preview]
+Show me the training data
+Training data
+
+[targetvalues]
+Which outputs are possible?
+What are the target variables?
+Possible results?
+
+[init]
+Hey there!
+Hey!
+Hello!
+Eric?
+Hey Eric! 
+
+[none]
