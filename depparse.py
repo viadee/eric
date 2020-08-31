@@ -2,7 +2,7 @@ import pickle
 import stanza
 import test_stuff
 from datetime import datetime
-from dictionary import cd, dictionary, nlp_dictionary
+from dictionary import cd, dictionary, nlp_dictionary, ph_outcome, ph_key, ph_value, ph_dvalue, ph_subject
 import eric_nlp
 
 
@@ -11,6 +11,7 @@ def depparse(sentences, pipeline):
     output = ["OUTPUT:\n"]
     roots = dict()
     for sentence in sentences:
+        print(f"parsing sentence: '{sentence}'")
         doc = pipeline(sentence)
 
         #get max_width for pretty printing
@@ -47,16 +48,20 @@ def depparse(sentences, pipeline):
                 roots[root.lower()] = 1
 
     roots = {key: val for key, val in sorted(roots.items(), key=lambda item: item[1], reverse=True)}
+    print(output)
     return output, roots
 
 
 def init_stanza(lang):
     print(f"loading stanza pipeline for language '{lang}'")
-    with open("data\\pipeline.pickle", "rb") as f:
-        stanza_pipeline = pickle.load(f)
-    # stanza.download(lang)
-    # stanza_pipeline = stanza.Pipeline(lang=lang, processors="tokenize,mwt,pos,lemma,depparse")
+    stanza.download(lang)
+    stanza_pipeline = stanza.Pipeline(lang=lang, processors="tokenize,mwt,pos,lemma,depparse")
     print("successfully loaded stanza pipeline")
+    return stanza_pipeline
+
+def init_stanza_from_pickle(filename):
+    with open(filename, "rb") as f:
+        stanza_pipeline = pickle.load(f)
     return stanza_pipeline
 
 '''
@@ -142,13 +147,12 @@ def tree_compare_bad_again(tree1, tree2):
     used_ids = []
     for word_b in big.words:
         found_id = bad_id
-        #head_b = big.words[int(word_b.head)-1] if word_b.head != 0 else "root"
+        
         for word_s in small.words:
-            #head_s = small.words[int(word_s.head)-1] if word_s.head != 0 else "root"
+            
 
-            if word_b.lemma == word_s.lemma and word_b.deprel == word_s.deprel and word_b.head == word_s.head:
-                if word_s.id not in used_ids:
-                    found_id = word_s.id
+            if word_b.lemma == word_s.lemma and word_b.deprel == word_s.deprel and word_b.head == word_s.head and word_s.id not in used_ids:
+                found_id = word_s.id
         if found_id != bad_id:
             similar_counter += 1
             used_ids.append(found_id)
@@ -204,8 +208,6 @@ if "#" was not in tuple_element, it returns tuple_element as it is and the defau
 also needs an eric, to invoke replacement of placeholders
 '''
 def get_comparison_attributes(word_object, tuple_element, eric, default="text"):
-    debug_on = False
-    greatless = True if tuple_element in [f"lemma{cd}<", f"lemma{cd}>"] else False
     #if word_object is a root_word, it will be a dictionary, as root words don't exist and are constructed synthetically in the function get_mother()
     if isinstance(word_object, dict):
         if cd in tuple_element:
@@ -215,31 +217,6 @@ def get_comparison_attributes(word_object, tuple_element, eric, default="text"):
         else:
             ret_word_attribute = word_object[default]
             ret_tuple_attribute = tuple_element
-        '''DEBUG-BEGIN'''
-        if debug_on:
-            import datetime
-            f = "output\\depparse\\splitter_test.txt"
-            headline = "/"*30
-            ts = "JETZT"##datetime.now().strftime("%d.%m.%Y %H:%M:%S")
-            out = [
-                f"{headline}",
-                f"{ts}",
-                f"{headline}",
-                f"tuple_element: {tuple_element}",
-                f"word_object:",
-                f"\t      id: {word_object['id']}",
-                f"\t    text: {word_object['text']}",
-                f"\t   lemma: {word_object['lemma']}",
-                f"\t    upos: {word_object['upos']}",
-                f"\t    xpos: {word_object['xpos']}",
-                f"\t head_id: {word_object['head']}",
-                f"\t  deprel: {word_object['deprel']}",
-                f" ret_word_attribute: {ret_word_attribute}",
-                f"ret_tuple_attribute: {ret_tuple_attribute}"
-                f"\n"
-            ]
-            test_stuff.list_to_file(out, f, mode="a")
-        '''DEBUG-END'''
     else:
         if cd in tuple_element:
             splitted = tuple_element.split(cd)
@@ -248,35 +225,7 @@ def get_comparison_attributes(word_object, tuple_element, eric, default="text"):
         else:
             ret_word_attribute = getattr(word_object, default)
             ret_tuple_attribute = tuple_element
-        
-        '''DEBUG-BEGIN'''
-        if debug_on:
-            import datetime
-            f = "output\\depparse\\splitter_test.txt"
-            headline = "/"*30
-            ts = "JETZT"#datetime.now().strftime("%d.%m.%Y %H:%M:%S")
-            out = [
-                f"{headline}",
-                f"{ts}",
-                f"{headline}",
-                f"tuple_element: {tuple_element}",
-                f"word_object:",
-                f"\t      id: {word_object.id}",
-                f"\t    text: {word_object.text}",
-                f"\t   lemma: {word_object.lemma}",
-                f"\t    upos: {word_object.upos}",
-                f"\t    xpos: {word_object.xpos}",
-                f"\t head_id: {word_object.head}",
-                f"\t  deprel: {word_object.deprel}",
-                f" ret_word_attribute: {ret_word_attribute}",
-                f"ret_tuple_attribute: {ret_tuple_attribute}"
-                f"\n"
-            ]
-            test_stuff.list_to_file(out, f, mode="a")
-        '''DEBUG-END'''
     ret1, ret2 = replace_depparse_placeholders(ret_word_attribute, ret_tuple_attribute, eric)
-    if debug_on and greatless:
-        print(f"{word_object} ::: '{ret1}' /// {tuple_element} ::: '{ret2}'")
     return ret1, ret2
 
 '''
@@ -288,31 +237,30 @@ and stores different forms of those as the values of that dict as list. Here ["s
 '''
 def replace_depparse_placeholders(word_attribute, tuple_attribute, eric):
     ret_word_attribute, ret_tuple_attribute = word_attribute, tuple_attribute
+
+    if ret_tuple_attribute == ph_outcome:
+        if eric.placeholders[ph_outcome]:
+            ret_tuple_attribute = eric.placeholders[ph_outcome]
     
-    if ret_tuple_attribute == "<outcome>":
-        if eric.placeholders["<outcome>"]:
-            ret_tuple_attribute = eric.placeholders["<outcome>"]
-    
-    elif ret_tuple_attribute == "<key>":
+    elif ret_tuple_attribute == ph_key:
         is_in_placeholders = False
-        for k in eric.placeholders["<key>"].keys():
+        for k in eric.placeholders[ph_key].keys():
             if k.lower() == ret_word_attribute.lower():
                 is_in_placeholders = True
                 break
         if is_in_placeholders:
             ret_tuple_attribute = ret_word_attribute    
-    elif ret_tuple_attribute == "<value>":
+    elif ret_tuple_attribute == ph_value:
         is_in_placeholders = False
-        for v in eric.placeholders["<key>"].values():
-            if v:
-                if v.lower() == ret_word_attribute.lower():
-                    is_in_placeholders = True
-                    break
+        for v in eric.placeholders[ph_key].values():
+            if v and v.lower() == ret_word_attribute.lower():
+                is_in_placeholders = True
+                break
         if is_in_placeholders:
             ret_tuple_attribute = ret_word_attribute
-    #print(f"{word_attribute}/{ret_word_attribute} :: {tuple_attribute}/{ret_tuple_attribute} ::::: {eric.placeholders}")
-    #test_stuff.logger(f"DEPREPLACE: {word_attribute} // {ret_word_attribute} ::::: {tuple_attribute} // {ret_tuple_attribute} ::::: {eric.placeholders}")
     return ret_word_attribute, ret_tuple_attribute
+
+replace_depparse_placeholders("", "", "")
 
 #looks for the head/mother node of word in tree and returns it (or a representing dictionary if head is root).
 #returns dict since root is not really represented in the word objects of depparse
@@ -335,7 +283,6 @@ def get_mother(word, tree):
 #takes a depparse tree t and goes through the depparse tree templates in dictionary.nlp_dictionary
 #returns a list of tuples (fct_id, tree template) with a tuple for every found match.
 def get_matching_dictionary_trees(tree, eric):
-    tab = "\t"
     mother_index = 0
     deprel_index = 1
     child_index = 2
@@ -404,16 +351,11 @@ def get_matching_dictionary_trees(tree, eric):
     #returns a list of tuples with two elements each: 1st fct_id, 2nd the tree template that matched, i.e. a list of tuples
     #largest template tree will be element 0
     
-    #print("/"*30)
-    #print(f"before: {all_matches}")
     if eric.prioritise_negation:
         ret_val = prioritise_negation(all_matches)
     else:
         ret_val = sorted(all_matches, key=lambda item: len(item[1]), reverse=True)
 
-    
-    #print(f"after: {ret_val}")
-    #print("/"*30)
     return ret_val
 
 #expects a list of tuples with two elements each: 1st fct_id, 2nd the tree template that matched, i.e. a list of tuples
@@ -484,9 +426,7 @@ def dictionary_templates_test(tree):
         test_stuff.logger(f"MATCHING TO {d['id']}")
         if "depparse" not in d.keys():
             continue
-        template_counter = 0
         for dep_template in d["depparse"]:
-            template_counter += 1
             correct_tupel_counter = 0 #if correct match, correct_tupel_counter should be equal to the number of elements in dep_template
             #test_stuff.logger(f"\t\t template {template_counter}")
             for tup in dep_template:
@@ -571,19 +511,20 @@ def print_depparsed_sentences(sentences, language="en", pipeline=""):
         pipeline = init_stanza(language)
     if isinstance(sentences, str):
         sentences = [sentences]
-    output, roots = depparse(sentences, pipeline)
+    output, _ = depparse(sentences, pipeline)
     for i, o in enumerate(output):
         print(f"{i}: {o}")
     
 def debug_depparsed_sentences_to_console():
-    pipeline = init_stanza("en")
+    pipeline = init_stanza("de")
     
     eric = eric_nlp.Eric_nlp()
     sentence_list = ["Used sentences:"]
-    
     print("Please provide input:")
     while True:
+    # for usr_in in whiletrue:
         usr_in = input()
+        
         
         if not usr_in:
             print("no input given")
@@ -591,18 +532,12 @@ def debug_depparsed_sentences_to_console():
         elif usr_in.lower() in ["exit", "exit()", "quit", "quit()", "end", "end()"]:
             break
 
-        # print(eric.make_int(usr_in))
-        # continue
         
         sentence_list.append(usr_in)
         preprocessed = eric.preprocessing(usr_in, "usr_input")
         print(f"preprocessed: {preprocessed}")
 
-        # tree = pipeline(preprocessed).sentences[0]
-        # results = get_matching_dictionary_trees(tree, eric)
-        # print(results)
-        # continue
-        out, roots = depparse([preprocessed], pipeline)
+        out, _ = depparse([preprocessed], pipeline)
 
         root = ""
         for o in out:
@@ -627,6 +562,8 @@ def debug_depparsed_sentences_to_console():
     
 
 def main():
+    debug_depparsed_sentences_to_console
+    quit()
     input_language = "en"
     stanza_pipeline = init_stanza(input_language)
     eric = eric_nlp.Eric_nlp()
@@ -647,7 +584,7 @@ def main():
     all_roots = dict() #keys are root words and the values are dicts where the keys are the function_id
     for fct_id, unpreprocessed_sentences in input_accumulated_as_dict.items():
         preprocessed_sentences = [eric.preprocessing(x, "usr_input") for x in unpreprocessed_sentences]
-        out_file = f"{output_path}{fct_id}.txt"
+        
         dep_output, roots = depparse(preprocessed_sentences, stanza_pipeline)
         
         preface = [f"{v}: {k}" for k, v in roots.items()]
@@ -659,7 +596,6 @@ def main():
         all_output = ["Used Input:"] + input_files + ["\n"] + preface + dep_output
         for o in all_output:
             print(o)
-        #test_stuff.list_to_file(all_output, out_file)
 
     create_roots_matrix(all_roots, roots_out_file, empty_cell="")
     print(all_roots)
@@ -678,11 +614,10 @@ def read_sentences_from_output(output_file):
     file_lines = test_stuff.get_file_lines(output_file)
     sentences = list()
     for line in file_lines:
-        if line != "":
-            if not line[0].isdigit() and line[0] != "=":
-                splitted = line.split()
-                if splitted[0] not in stop_words:
-                    sentences.append(line)
+        if line != "" and not line[0].isdigit() and line[0] != "=":
+            splitted = line.split()
+            if splitted[0] not in stop_words:
+                sentences.append(line)
     return list(set(sentences))
 
 
@@ -783,7 +718,7 @@ def test_some_sentences():
     more = [f"what if age was {x}" for x in words]
     sentences.extend(more)
 
-    out, roots = depparse(sentences, sp)
+    out, _ = depparse(sentences, sp)
 
     for o in out:
         print(o)
@@ -812,7 +747,7 @@ if __name__ == "__main__":
         try:
             x = d['depparse'][0]
             print("\t---")
-        except:
+        except Exception as e:
             print("\tNOTHING")
 
     sp = init_stanza("en")

@@ -65,7 +65,7 @@ d = {
     }
 }
 
-data = pd.read_csv('titanic.csv')
+data = pd.read_csv("data\\datasets\\titanic.csv")
 data.rename(columns={'Survived': 'class'}, inplace=True)
 data['Sex'] = data['Sex'].map({'male':'Male','female':'Female'})
 data['Embarked'] = data['Embarked'].map({'S':'Southampton','C':'Cherbourg','Q':'Queenstown'})

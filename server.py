@@ -34,9 +34,8 @@ class ruleEnvironment:
 
         
         #NLP components
-        self.nlp_model_file = "data\\wiki.en.bin"
         self.nlp = eric_nlp.Eric_nlp()
-        self.nlp.load_model(self.nlp_model_file)
+        self.nlp.load_model(self.nlp.nlp_model_file)
         self.nlp.init_depparsing("en")
 
     def initEnvironment(self):
@@ -205,7 +204,11 @@ class ruleEnvironment:
             if message_no_punctuation.split():
                 #is a specific answer expected?
                 if self.nlp.valid_answers:
-                    message = self.nlp.preprocessing(message, "usr_input")
+                    #"no" would get replaced by zero because of replace_worded_numbers() so protect it here. Not elegant but currently easy solution
+                    if not message == "no":
+                        message = self.nlp.preprocessing(message, "usr_input")
+                    # else:
+                    #     message = message_no_punctuation
                     #check if current input is a valid answer
                     message, is_valid = self.nlp.is_valid_answer(message)
                     if not is_valid:
