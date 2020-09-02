@@ -436,7 +436,16 @@ class mlObject:
             #d['Pclass'] = d['Pclass'].map({'First': 0, 'Second': 1, 'Third': 2})
             return(d)        
 
+        #filter floats and convert to int
         query_instance = dict(s.split(':') for s in arg) 
+        for k, v in query_instance.items():
+            print(f"{k}: {v} ({type(v)})")
+            try:
+                x = float(v)
+                x = int(x)
+                query_instance[k] = f"{x}"
+            except:
+                pass
 
         sorted_query_instance = {}
         for f in self.featureNames:

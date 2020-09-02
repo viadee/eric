@@ -1,0 +1,19 @@
+[why]
+#1.0 ->rejected because it was falsely listed under "none"-gold
+Why do you think that?
+
+[how-to]
+#0.6461204886436462 ->rejected because it was listed under "none"-gold. That is true, but how-to could also be plausible as a reaction from eric
+How to change the age?
+
+[when]
+#0.5640794634819031  -> similarity too low and depparse can't recognise that sentence
+When is a person survived
+
+[certainty]
+#0.6447488367557526 -> was listed under none-gold which makes sense, but eric-reaction with certainty is also plausible
+With what certainty is it expected that they are male?
+
+[predict]
+#0.6376044154167175 -> was listed as none-gold but a predict would also be plausible
+How can I find out if they would have died?

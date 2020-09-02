@@ -1,0 +1,56 @@
+[predict]
+Make prediction
+Please predict
+predict for current person
+predict for current data
+
+[whatif]
+Change Age to 22
+Change Sex to Female
+Change Embarked to Cherbourg
+set Age = 22
+set Sex = Male
+set Embarked = Southampton
+
+[whatif-gl]
+Change Fare to higher value
+Change Age to lower value
+predict Embarked for higher value
+predict Sex for lower value
+
+[why]
+Why did this person die
+why did the person survive
+explain your prediction
+
+
+[why-not]
+Why didn't this person die
+why didn't the person survive
+
+[how-to]
+What has to be changed to get a died/survived person?
+
+[when]
+When is a person died
+When is a person survived
+
+[certainty]
+How certain is the prediction?
+
+[featureNames]
+What are input variables?
+What does the result depend on?
+
+[preview]
+Please show sample data.
+show sample data.
+
+[targetvalues]
+What are the possible outputs?
+What are the possiblie predictions?
+
+[init]
+Hi ERIC, how are you?
+
+[none]

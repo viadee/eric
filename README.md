@@ -78,7 +78,7 @@ Independent form your OS, you must do the following (Windows and OSX):
     dot -c
 
 The following changes must be done to the installed packages within the anaconda environment. You find the packages in the directory where you installed anaconda:
-* anaconda3⁩ ▸ ⁨envs⁩ ▸ eric ▸ ⁨lib⁩ ▸ ⁨python3.7⁩ ▸ ⁨(site-packages)⁩ ▸ ⁨ceteris_paribus⁩ ▸ ⁨plots⁩ ▸ plots.py: Line 156-165 replace with: "return(plot_id)"
+* anaconda3⁩ ▸ ⁨envs⁩ ▸ eric ▸ ⁨lib⁩ ▸ ⁨(python3.7)⁩ ▸ ⁨(site-packages)⁩ ▸ ⁨ceteris_paribus⁩ ▸ ⁨plots⁩ ▸ plots.py: Line 156-165 replace with: "return(plot_id)"
 <!-- * anaconda3⁩ ▸ ⁨envs⁩ ▸ eric ▸ ⁨lib⁩ ▸ ⁨python3.7⁩ ▸ ⁨(site-packages⁩) ▸ ⁨shap⁩ ▸ ⁨plots⁩ ▸ force_matplotlib.py: Line 149 replace with: "if True:"-->
 
 Then you can the provided titanic example:

@@ -1,0 +1,3 @@
+[when]
+when is a person survived
+when is a person died

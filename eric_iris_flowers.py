@@ -14,68 +14,44 @@ d = {
     "class": {
         "feature-type": "categorical",
         "values": {
-            0: "died",
-            1: "survived"
+            0: "Iris-setosa",
+            1: "Iris-versicolor",
+            2: "Iris-virginica"
         },
         "data-type": "string"
     },
-    "Pclass": {
-        "feature-type": "categorical",
-        "values": {
-            0: "First",
-            1: "Second",
-            2: "Third"
-        },
-        "data-type": "string"
-    },
-    "Sex": {
-        "feature-type": "categorical",
-        "values": {
-            0: "Male",
-            1: "Female"
-        },
-        "data-type": "string"
-    },
-    "Age": {
-        "feature-type": "continuous",
-        "regex": "(\\d+)",
-        "values": {"min": 0, "max": 90},
-        "data-type": "integer"
-    },
-    "Fare": {
+    "sepal_length": {
         "feature-type": "continuous",
         "regex": "(\\d+)(\\.\\d+)?",
-        "values": {"min": 0, "max": 512},
+        "values": {"min": 0, "max": 10},
         "data-type": "float"
     },
-    "Embarked": {
-        "feature-type": "categorical",
-        "values": {
-            0: "Southampton",
-            1: "Cherbourg",
-            2: "Queenstown"
-            },
-        "data-type": "string"
-    },
-    "Relatives": {
+    "sepal_width": {
         "feature-type": "continuous",
-        "regex": "(\\d+)",
+        "regex": "(\\d+)(\\.\\d+)?",
         "values": {"min": 0, "max": 10},
-        "data-type": "integer"
+        "data-type": "float"
+    },
+    "petal_length": {
+        "feature-type": "continuous",
+        "regex": "(\\d+)(\\.\\d+)?",
+        "values": {"min": 0, "max": 10},
+        "data-type": "float"
+    },
+    "petal_width": {
+        "feature-type": "continuous",
+        "regex": "(\\d+)(\\.\\d+)?",
+        "values": {"min": 0, "max": 10},
+        "data-type": "float"
     }
 }
 
-data = pd.read_csv("data\\datasets\\titanic.csv")
-data.rename(columns={'Survived': 'class'}, inplace=True)
-data['Sex'] = data['Sex'].map({'male':'Male','female':'Female'})
-data['Embarked'] = data['Embarked'].map({'S':'Southampton','C':'Cherbourg','Q':'Queenstown'})
-data['Pclass'] = data['Pclass'].map({1:'First', 2:'Second', 3:'Third'})
-data['Relatives'] = data['SibSp'] + data['Parch']
+data = pd.read_csv("data\\datasets\\iris_flowers.csv")
+data.rename(columns={'species': 'class'}, inplace=True)
 
-data = data.drop(['PassengerId', 'Name','Ticket','Cabin', 'SibSp', 'Parch'], axis=1)
 data = data.dropna()
 
-f = ['Pclass', 'Sex', 'Age', 'Fare', 'Embarked', 'Relatives']
+f = ['sepal_length', 'sepal_width', 'petal_length', 'petal_width']
 
 features = data.drop('class', axis=1)
 
@@ -83,11 +59,11 @@ X_train, X_test, Y_train, Y_test = \
     train_test_split(features, data['class'].values, random_state=2)
 
 #MODEL
-numeric_features = ['Age', 'Fare', 'Relatives']
+numeric_features = f
 numeric_transformer = Pipeline(steps=[
     ('scaler', MinMaxScaler())])
 
-categorical_features = ['Pclass', 'Sex', 'Embarked']
+categorical_features = []
 categorical_transformer = Pipeline(steps=[
     ('onehot', OneHotEncoder(handle_unknown='ignore'))])
 

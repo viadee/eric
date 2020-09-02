@@ -1,3 +1,17 @@
+#NLP model
+data/wiki.en.bin
+README_FIRST.txt
+data/pipeline.pickle
+output/*
+data/fasttext_models/*
+data/pickles/*
+testset_plausible_wrong.txt
+data/chat_bak.js
+data/dictionary_bak.py
+data/server_bak.py
+TODO.txt
+presentation_guide.txt
+
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]

@@ -1,0 +1,59 @@
+[why]
+Show me how you got that result.
+Explain how you got that result.
+
+[why-not]
+
+[how-to]
+
+[when]
+Under which condition do I get result died?
+Under which condition do I get result survived?
+
+[certainty]
+What’s the probability of error of this calculation?
+What’s the significance level of this calculation?
+How significant are these results?
+
+[predict]
+Can you project if person x would have survived?
+Can you forecast if person x would have survived?
+Can you anticipate if person x would have survived?
+Is it foreseeable that person x would have survived?
+Would person x presumably have survived?
+
+[whatif]
+
+[whatif-gl]
+If I decreased the Age how would that change the prediction?
+If I increased the Age how would that change the outcome?
+What would be the result with a lower Age?
+What would be the result with a higher value for Relatives?
+If Age was changed how would that affect the result?
+If Embarked was changed how would that affect the outcome?
+What would change if Sex was changed?
+What impact would it have if I changed Embarked?
+
+[featureNames]
+Which factors do you use for your calculations?
+Which features do you use for your calculations?
+
+[preview]
+
+[init]
+Hi
+Hello
+Good morning
+Good evening
+Gday
+Greetings
+Dear Eric
+
+[none]
+#not a function the bot provides or not understandable even for a human
+I have a problem
+I need help
+Please help me
+I need information on ...
+Which factors do I need so that ...?
+Which conditions have to be fulfilled so that ...?

@@ -1,5 +1,6 @@
 import clips
 import time
+import eric_nlp
 import pandas as pd 
 from sklearn.model_selection import train_test_split # Import train_test_split function
 import numpy as geek
@@ -30,6 +31,12 @@ class ruleEnvironment:
         self.fact_type = "input ui"
         self.clips_type = "symbol"
         self.set_of_functions = dictionary
+
+        
+        #NLP components
+        self.nlp = eric_nlp.Eric_nlp()
+        self.nlp.load_model(self.nlp.nlp_model_file)
+        self.nlp.init_depparsing("en")
 
     def initEnvironment(self):
         self.env.define_function(self.mlObject.predict_connector, name="predict_connector")
@@ -151,6 +158,12 @@ class ruleEnvironment:
             with open(image_url, "rb") as image_file:
                 image = base64.b64encode(image_file.read()).decode('utf-8')
 
+        parsed_valid_answers = eval(valid_answers)
+        if isinstance(parsed_valid_answers, dict):
+            self.nlp.valid_answers = parsed_valid_answers
+        else:
+            self.nlp.valid_answers = ""
+
         message = {'type':'message', 'text': str(text), 'image': image, 'valid-answers': eval(valid_answers), 'clipboard': eval(clipboard)}
         MyServerProtocol.broadcast_message(message)
 
@@ -172,14 +185,62 @@ class ruleEnvironment:
         print("Message to clips: " + message)
         print("fact type: " + self.fact_type)
         print("clips type: " + self.clips_type)
+
+        message_no_punctuation = self.nlp.remove_stop_chars(message)
+        if not self.fact_type == 'skip':
+            #yes/no phrasings. check for whole message and for first word. sometimes people write "yes" or "no" and directly write something else            
+            print(f"SPLIT: {message_no_punctuation.split()}")
+            if message_no_punctuation.split():
+                if message_no_punctuation.lower() in self.nlp.yes_phrasings:
+                    message = "yes"
+                elif message_no_punctuation.split()[0].lower() in self.nlp.yes_phrasings:
+                    message = "yes"
+                elif message_no_punctuation.lower() in self.nlp.no_phrasings:
+                    message = "no"
+                elif message_no_punctuation.split()[0].lower() in self.nlp.no_phrasings:
+                    message = "no"
+            
+            invalid_answer = False
+            if message_no_punctuation.split():
+                #is a specific answer expected?
+                if self.nlp.valid_answers:
+                    #"no" would get replaced by zero because of replace_worded_numbers() so protect it here. Not elegant but currently easy solution
+                    if not message == "no":
+                        message = self.nlp.preprocessing(message, "usr_input")
+                    # else:
+                    #     message = message_no_punctuation
+                    #check if current input is a valid answer
+                    message, is_valid = self.nlp.is_valid_answer(message)
+                    if not is_valid:
+                        invalid_answer = True
+                    
+                    
+                #function selection expected
+                else:
+                    message = self.nlp.map_to_eric_function(message)
+                    print(f"NLP-message: {message}")
+
+                    message = self.nlp.expand_with_parameters(message)
+                    print(f"expanded message: '{message}'")
+            else:
+                invalid_answer = True
+
+
+            if invalid_answer:
+                    ret_message = {'type':'message', 'text': 'I cannot use this input here', 'image': "", 'valid-answers': f"{self.nlp.valid_answers}", 'clipboard': ""}
+                    MyServerProtocol.broadcast_message(ret_message)
+                    return
     
         if(self.fact_type == 'skip'):
-            self.env.assert_string('(' + message + ')')
+            ass = '(' + message + ')'
         else:
             if self.clips_type == 'string':
-                self.env.assert_string('(' + self.fact_type + ' "' + message + '")')
+                ass = '(' + self.fact_type + ' "' + message + '")'
             else:
-                self.env.assert_string('(' + self.fact_type + ' ' + message + ')')
+                ass = '(' + self.fact_type + ' ' + message + ')'
+        print(f"asserting input: {ass}")
+        self.env.assert_string(ass)
+        
         self.env.run()
 
 #Server infrastructure
